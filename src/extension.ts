@@ -48,7 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
     "cofire.suggestCode",
     async () => {
       const input = await vscode.window.showInputBox({
-        placeHolder: "Nhập yêuscầu AI, ví dụ: viết hàm tính giai thừa",
+        placeHolder: "Nhập yêu cầu AI, ví dụ: viết hàm tính giai thừa",
       });
 
       if (!input) return;
@@ -66,20 +66,31 @@ export function activate(context: vscode.ExtensionContext) {
       try {
         const res = await axios.post("http://localhost:5000/manual-prompt", {
           prompt: input,
-          language,
+          language: language,
           context: contextText,
         });
 
         const code = res.data.code || res.data;
-        return [
-          new vscode.InlineCompletionItem(
-            code,
-            new vscode.Range(position, position)
-          ),
-        ];
-      } catch (err) {
-        vscode.window.showErrorMessage("Lỗi AI Suggestion: " + err);
-        return [];
+
+        const accept = "Accept";
+        const reject = "Cancel";
+
+        const choice = await vscode.window.showInformationMessage(
+          "AI đã gợi ý đoạn code, bạn có muốn chèn không?",
+          accept,
+          reject
+        );
+
+        if (choice === accept) {
+          editor.edit((editBuilder) => {
+            editBuilder.insert(editor.selection.active, code);
+          });
+        } else {
+          // Người dùng không đồng ý, không làm gì hoặc thông báo khác
+          vscode.window.showInformationMessage("Bạn đã hủy chèn code.");
+        }
+      } catch (err: any) {
+        vscode.window.showErrorMessage("Lỗi gọi AI: " + err.message);
       }
     }
   );
