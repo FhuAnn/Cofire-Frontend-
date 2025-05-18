@@ -1,13 +1,16 @@
 import * as vscode from "vscode";
-import axios from "axios";
 import { checkBackendStatus } from "./utils/apis";
 import { recommmendCodeTyping } from "./commands/recommendCodeTyping";
 import { registerInlineSuggestionProvider } from "./commands/suggestCodeCommand";
+import { registerBlockGenCommand } from "./commands/registerBlockGenCommand";
+import { registerExplainCodeCommand } from "./commands/explainCode";
 export function activate(context: vscode.ExtensionContext) {
   checkBackendStatusStart();
   context.subscriptions.push(
     recommmendCodeTyping(),
-    registerInlineSuggestionProvider()
+    registerInlineSuggestionProvider(),
+    registerBlockGenCommand(),
+    registerExplainCodeCommand()
   );
 }
 

@@ -56,3 +56,56 @@ export async function callGetAISuggestion(
     return null;
   }
 }
+
+export async function callAPISuggestBlock() {
+  const res = await fetch("http://localhost:5000/suggest-block", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      language: "javascript",
+      context: "Write a function that removes duplicate elements from an array",
+    }),
+  });
+  return await res.json();
+}
+
+export async function callExplainCodeAI(code: string, language: string) {
+  try {
+    const res = await fetch("http://localhost:5000/explain-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, language }),
+    });
+    const data = (await res.json()) as { data: string };
+    return data?.data;
+  } catch (err: any) {
+    vscode.window.showErrorMessage("Explain code failed: " + err.message);
+    return null;
+  }
+}
+
+export async function callGenerateCodeFromPrompt(
+  prompt: string,
+  language: string
+) {
+  const res = await fetch("http://localhost:3000/generate-file-from-prompt", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, language }),
+  });
+
+  const data = (await res.json()) as { data: string };
+  return data.data;
+}
+
+export async function callChatAI(
+  history: { role: string; content: string }[]
+): Promise<string> {
+  const response = await axios.post("http://localhost:5000/api/chat", {
+    messages: history,
+  });
+
+  return response.data.result;
+}

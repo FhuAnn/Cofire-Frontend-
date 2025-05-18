@@ -18,13 +18,45 @@
       {
         "command": "cofire.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "ai-suggest.suggestFunctionBlock",
+        "title": "AI: Suggest Function/Block"
+      },
+      {
+        "command": "ai-suggest.explainCode",
+        "title": "AI: Explain Selected Code"
       }
     ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "ai-suggest.suggestFunctionBlock",
+          "when": "editorHasSelection",
+          "group": "navigation"
+        },
+        {
+          "command": "ai-suggest.explainCode",
+          "when": "editorHasSelection",
+          "group": "navigation"
+        }
+      ]
+    },
     "keybindings": [
       {
         "command": "cofire.suggestCode",
         "key": "ctrl+i",
         "when": "editorTextFocus"
+      },
+      {
+        "command": "ai-suggest.suggestFunctionBlock",
+        "key": "ctrl+alt+b",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "ai-suggest.explainCode",
+        "key": "ctrl+alt+e",
+        "when": "editorTextFocus && editorHasSelection"
       }
     ]
   },
