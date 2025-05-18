@@ -1,49 +1,37 @@
 import * as vscode from "vscode";
-import { callManualCompletionAI } from "../utils/apis";
+import { callGetAISuggestion } from "../utils/apis";
 
-export function registerSuggestCodeCommand() {
-  // === Lệnh Ctrl+I để gọi AI gợi ý từ prompt ===
-  return vscode.commands.registerCommand("cofire.suggestCode", async () => {
-    const input = await vscode.window.showInputBox({
-      placeHolder: "Nhập yêu cầu AI, ví dụ: viết hàm tính giai thừa",
-    });
+export function registerInlineSuggestionProvider() {
+  return vscode.languages.registerInlineCompletionItemProvider(
+    ["javascript", "typescript", "python", "csharp"],
+    {
+      async provideInlineCompletionItems(document, position, context, token) {
+        const language = document.languageId;
 
-    if (!input) return;
+        const range = new vscode.Range(
+          Math.max(position.line - 20, 0),
+          0,
+          position.line,
+          position.character
+        );
+        const codeContext = document.getText(range);
 
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) return;
-    const language = editor.document.languageId;
-    const position = editor.selection.active;
-    const contextText = editor.document.getText(
-      new vscode.Range(
-        new vscode.Position(Math.max(0, position.line - 20), 0),
-        position
-      )
-    );
-    try {
-      const res = await callManualCompletionAI(input, language, contextText);
+        try {
+          const suggestion = await callGetAISuggestion(language, codeContext);
 
-      const code = res.data.code || res.data;
+          if (!suggestion) return [];
 
-      const accept = "Accept";
-      const reject = "Cancel";
-
-      const choice = await vscode.window.showInformationMessage(
-        "AI đã gợi ý đoạn code, bạn có muốn chèn không?",
-        accept,
-        reject
-      );
-
-      if (choice === accept) {
-        editor.edit((editBuilder) => {
-          editBuilder.insert(editor.selection.active, code);
-        });
-      } else {
-        // Người dùng không đồng ý, không làm gì hoặc thông báo khác
-        vscode.window.showInformationMessage("Bạn đã hủy chèn code.");
-      }
-    } catch (err) {
-      vscode.window.showErrorMessage("Lỗi gọi AI: " + err);
+          return [
+            {
+              insertText: suggestion,
+              range: new vscode.Range(position, position),
+            },
+          ];
+        } catch (err) {
+          vscode.window.showErrorMessage("AI Suggestion Error: " + err);
+          return [];
+        }
+      },
     }
-  });
+  );
 }
