@@ -30,6 +30,10 @@
       {
         "command": "cofire.enterPromtToGenerateFile",
         "title": "Enter promt"
+      },
+      {
+        "command": "cofire.chatWithAI",
+        "title": "Chat with AI"
       }
     ],
     "menus": {
@@ -49,10 +53,14 @@
           "command": "cofire.explainCode",
           "when": "editorHasSelection",
           "group": "navigation"
+        },
+        {
+          "command": "cofire.chatWithAI",
+          "group": "navigation"
         }
       ]
     },
-    "submenus": [ 
+    "submenus": [
       {
         "id": "cofire.menu",
         "label": "Cofire"

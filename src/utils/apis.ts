@@ -87,12 +87,11 @@ export async function callExplainCodeAI(code: string, language: string) {
   }
 }
 
-export async function callChatAI(
-  history: { role: string; content: string }[]
-): Promise<string> {
+export async function callChatAI(userPrompt: string): Promise<string> {
+  console.log("call api chatAI", userPrompt);
   const response = await axios.post("http://localhost:5000/api/chat", {
-    messages: history,
+    fullPrompt: userPrompt,
   });
 
-  return response.data.result;
+  return response.data.data;
 }

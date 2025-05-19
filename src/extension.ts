@@ -4,13 +4,17 @@ import { recommmendCodeTyping } from "./commands/UC2-complementContinousCodeTypi
 import { registerBlockGenCommand } from "./commands/UC3-registerBlockGenCommand";
 import { registerExplainCodeCommand } from "./commands/UC4-explainCode";
 import { registerSuggestCodeCommand } from "./commands/UC5-controlToPrompt";
+import { openAIChatPanel } from "./chat/UC6-aiChat";
 export function activate(context: vscode.ExtensionContext) {
   checkBackendStatusStart();
   context.subscriptions.push(
     recommmendCodeTyping(),
     registerBlockGenCommand(),
     registerExplainCodeCommand(),
-    registerSuggestCodeCommand()
+    registerSuggestCodeCommand(),
+    vscode.commands.registerCommand("cofire.chatWithAI", () =>
+      openAIChatPanel(context)
+    )
   );
 }
 
