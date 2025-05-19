@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { callExplainCodeAI } from "../utils/apis";
 
 export function registerExplainCodeCommand() {
-  return vscode.commands.registerCommand("ai-suggest.explainCode", async () => {
+  return vscode.commands.registerCommand("cofire.explainCode", async () => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) return;
 
@@ -17,7 +17,7 @@ export function registerExplainCodeCommand() {
       return;
     }
 
-const explanation = await callExplainCodeAI(code, language);
+    const explanation = await callExplainCodeAI(code, language);
     if (explanation) {
       vscode.window.showInformationMessage("📘 Code explained below:");
       const doc = await vscode.workspace.openTextDocument({

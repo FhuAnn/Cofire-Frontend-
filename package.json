@@ -24,27 +24,43 @@
         "title": "AI: Suggest Function/Block"
       },
       {
-        "command": "ai-suggest.explainCode",
+        "command": "cofire.explainCode",
         "title": "AI: Explain Selected Code"
+      },
+      {
+        "command": "cofire.enterPromtToGenerateFile",
+        "title": "Enter promt"
       }
     ],
     "menus": {
       "editor/context": [
+        {
+          "submenu": "cofire.menu",
+          "group": "navigation"
+        }
+      ],
+      "cofire.menu": [
         {
           "command": "ai-suggest.suggestFunctionBlock",
           "when": "editorHasSelection",
           "group": "navigation"
         },
         {
-          "command": "ai-suggest.explainCode",
+          "command": "cofire.explainCode",
           "when": "editorHasSelection",
           "group": "navigation"
         }
       ]
     },
+    "submenus": [ 
+      {
+        "id": "cofire.menu",
+        "label": "Cofire"
+      }
+    ],
     "keybindings": [
       {
-        "command": "cofire.suggestCode",
+        "command": "cofire.enterPromtToGetCode",
         "key": "ctrl+i",
         "when": "editorTextFocus"
       },

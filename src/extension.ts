@@ -1,16 +1,16 @@
 import * as vscode from "vscode";
 import { checkBackendStatus } from "./utils/apis";
-import { recommmendCodeTyping } from "./commands/recommendCodeTyping";
-import { registerInlineSuggestionProvider } from "./commands/suggestCodeCommand";
-import { registerBlockGenCommand } from "./commands/registerBlockGenCommand";
-import { registerExplainCodeCommand } from "./commands/explainCode";
+import { recommmendCodeTyping } from "./commands/UC2-complementContinousCodeTyping";
+import { registerBlockGenCommand } from "./commands/UC3-registerBlockGenCommand";
+import { registerExplainCodeCommand } from "./commands/UC4-explainCode";
+import { registerSuggestCodeCommand } from "./commands/UC5-controlToPrompt";
 export function activate(context: vscode.ExtensionContext) {
   checkBackendStatusStart();
   context.subscriptions.push(
     recommmendCodeTyping(),
-    registerInlineSuggestionProvider(),
     registerBlockGenCommand(),
-    registerExplainCodeCommand()
+    registerExplainCodeCommand(),
+    registerSuggestCodeCommand()
   );
 }
 

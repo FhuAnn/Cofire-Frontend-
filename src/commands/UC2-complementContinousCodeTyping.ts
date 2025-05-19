@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { insertGhostText } from "../utils/insertGhostText";
-import { callGetAISuggestion } from "../utils/apis";
-const debouncedGetSuggestion = debounce(callGetAISuggestion, 300);
+import { callGetContinousCodeAISuggestion } from "../utils/apis";
+const debouncedGetSuggestion = debounce(callGetContinousCodeAISuggestion, 300);
 function debounce<T extends (...args: any[]) => any>(func: T, wait: number) {
   let timeout: NodeJS.Timeout;
   return (...args: Parameters<T>) => {

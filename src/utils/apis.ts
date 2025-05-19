@@ -17,6 +17,7 @@ export async function callManualCompletionAI(
   language: string,
   context: string
 ) {
+  console.log(prompt, language, context);
   const res = await axios.post("http://localhost:5000/manual-prompt", {
     prompt,
     language,
@@ -24,7 +25,7 @@ export async function callManualCompletionAI(
   });
   return res.data;
 }
-
+//UC1
 export async function checkBackendStatus() {
   const res = await fetch("http://localhost:5000/status");
   const json = await res.json();
@@ -32,8 +33,8 @@ export async function checkBackendStatus() {
   return json as { status: string };
 }
 let lastAbortController: AbortController | null = null;
-
-export async function callGetAISuggestion(
+//UC2
+export async function callGetContinousCodeAISuggestion(
   context: string,
   language: string
 ): Promise<string | null> {
@@ -56,7 +57,7 @@ export async function callGetAISuggestion(
     return null;
   }
 }
-
+//UC3
 export async function callAPISuggestBlock() {
   const res = await fetch("http://localhost:5000/suggest-block", {
     method: "POST",
@@ -70,7 +71,7 @@ export async function callAPISuggestBlock() {
   });
   return await res.json();
 }
-
+//UC4
 export async function callExplainCodeAI(code: string, language: string) {
   try {
     const res = await fetch("http://localhost:5000/explain-code", {
@@ -84,20 +85,6 @@ export async function callExplainCodeAI(code: string, language: string) {
     vscode.window.showErrorMessage("Explain code failed: " + err.message);
     return null;
   }
-}
-
-export async function callGenerateCodeFromPrompt(
-  prompt: string,
-  language: string
-) {
-  const res = await fetch("http://localhost:3000/generate-file-from-prompt", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, language }),
-  });
-
-  const data = (await res.json()) as { data: string };
-  return data.data;
 }
 
 export async function callChatAI(
