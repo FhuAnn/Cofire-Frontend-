@@ -36,7 +36,8 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
 
   currentPanel = panel;
 
-  panel.webview.html = getChatHtml();
+  panel.webview.html =getChatHtml(panel, context);
+
 
   panel.webview.onDidReceiveMessage(async (message) => {
     const { prompt, code, filename } = message;
