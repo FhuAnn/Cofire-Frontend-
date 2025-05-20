@@ -34,6 +34,10 @@
       {
         "command": "cofire.chatWithAI",
         "title": "Chat with AI"
+      },
+      {
+        "command": "cofire.chatWithAIver2",
+        "title": "Chat with AI ver2"
       }
     ],
     "menus": {
@@ -56,6 +60,10 @@
         },
         {
           "command": "cofire.chatWithAI",
+          "group": "navigation"
+        },
+        {
+          "command": "cofire.chatWithAIver2",
           "group": "navigation"
         }
       ]

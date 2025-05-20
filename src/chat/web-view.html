@@ -1,6 +1,4 @@
-export function getChatHtml(): string {
-  return `
-    <!DOCTYPE html>
+ <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8" />
@@ -56,8 +54,8 @@ code:not(pre code) {
         function send() {
           const q = questionInput.value;
           if (!q) return;
-          chatBox.innerHTML += \`<div class='q'>🙋‍♂️ Bạn: \${q}</div>\`;
-          chatBox.innerHTML += \`<div class='q'>File \${currentFilename}</div>\`;
+          chatBox.innerHTML += `<div class='q'>🙋‍♂️ Bạn: ${q}</div>`;
+          chatBox.innerHTML += `<div class='q'>File ${currentFilename}</div>`;
           vscode.postMessage({ prompt: q, code: currentCode, filename: currentFilename });
           questionInput.value = "";
         }
@@ -76,7 +74,7 @@ code:not(pre code) {
             currentFilename = data.fileName;
             currentFileDisplay.textContent = currentFilename;
           } else if (data.reply) {
-            chatBox.innerHTML += \`<div class='a'>🤖 AI: \${data.reply}</div>\`;
+            chatBox.innerHTML += `<div class='a'>🤖 AI: ${data.reply}</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
           }
         });
@@ -84,5 +82,3 @@ code:not(pre code) {
       
     </body>
     </html>
-  `;
-}
