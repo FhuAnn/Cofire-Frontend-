@@ -1,34 +1,126 @@
 body {
-  font-family: sans-serif;
-  padding: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 24px;
+  background-color: #f0f2f5;
 }
-#fileName {
-  font-weight: bold;
-  margin-bottom: 10px;
+
+#container {
+  max-width: 720px;
+  margin: auto;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
+
+#fileInfo {
+  font-size: 15px;
+  font-weight: 600;
+  color: #444;
+}
+
 #chatBox {
-  max-height: 300px;
+  max-height: 350px;
   overflow-y: auto;
+  background-color: #fafafa;
   border: 1px solid #ddd;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
 }
+
 .q {
   font-weight: bold;
+  margin-top: 8px;
+  color: #007acc;
 }
-.a {
-  margin-left: 10px;
+
+/* .a {
+  margin-bottom: 12px;
+  padding: 10px;
+  background-color: #eef6fb;
+  border-left: 4px solid #007acc;
+  border-radius: 6px;
+} */
+
+ul {
+  padding-left: 20px;
+  margin-top: 6px;
 }
+
+li {
+  margin-bottom: 6px;
+  line-height: 1.5;
+  color: #005f9e;
+}
+
+.fileAttach {
+  display: inline-block;
+  background-color: #007fd4;
+  color: white;
+  padding: 3px 6px;
+  border-radius: 5px;
+  font-size: 13px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
 pre {
   background: #f6f8fa;
   border-radius: 6px;
-  padding: 16px;
+  padding: 12px;
   overflow-x: auto;
-  margin: 10px 0;
   border: 1px solid #ddd;
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 10px 0;
 }
+
 code {
-  font-family: monospace;
-  font-size: 0.9em;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 13px;
   color: #24292e;
+}
+
+#inputContainer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#question {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  outline: none;
+  transition: border 0.2s ease;
+}
+
+#question:focus {
+  border-color: #007acc;
+}
+
+#sendBtn {
+  padding: 10px 16px;
+  background-color: #007acc;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#sendBtn:hover {
+  background-color: #005f9e;
+}
+
+.robot {
+  color: #292929;
+  font-weight: bold;
 }

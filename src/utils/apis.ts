@@ -101,14 +101,3 @@ export async function callAPIInlineCompletionCode(
   return response.data.data;
 }
 
-export function extractCodeFromMarkdown(response: string): string {
-  const codeBlockRegex = /```(?:[\w-]*)?\n([\s\S]*?)```/gm;
-  const match = codeBlockRegex.exec(response);
-
-  if (match && match[1]) {
-    return match[1].trim();
-  }
-
-  // Không có khối code markdown, trả về nguyên văn nhưng loại bỏ ``
-  return response.replace(/```/g, "").trim();
-}

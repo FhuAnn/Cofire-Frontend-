@@ -1,14 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
+    <title>Trợ lý mã</title>
     <link href="{{styleUri}}" rel="stylesheet" />
   </head>
   <body>
-    <div id="fileName">📄 Đang xem: <span id="currentFile">...</span></div>
-    <div id="chatBox"></div>
-    <input id="question" placeholder="Nhập câu hỏi..." style="width: 80%" />
-    <button onclick="send()">Gửi</button>
+    <main id="container">
+      <section id="fileInfo">
+        📄 Đang xem: <span id="currentFile">...</span>
+      </section>
+
+      <section id="chatBox"></section>
+
+      <section id="inputContainer">
+        <input id="question" placeholder="Nhập câu hỏi..." autocomplete="off" />
+        <button id="sendBtn" onclick="send()">Gửi</button>
+      </section>
+    </main>
 
     <script src="{{scriptUri}}"></script>
   </body>
