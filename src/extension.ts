@@ -6,13 +6,17 @@ import { registerExplainCodeCommand } from "./commands/UC4-explainCode";
 import { registerSuggestCodeCommand } from "./commands/UC5-controlToPrompt";
 import { openAIChatPanel } from "./chat/UC6-aiChat";
 import { inlineCompletionProvider } from "./providers/UC2temp-commandProvider";
+
 export function activate(context: vscode.ExtensionContext) {
   checkBackendStatusStart();
   context.subscriptions.push(
     // recommmendCodeTyping(),
     registerBlockGenCommand(),
     registerExplainCodeCommand(),
-    registerSuggestCodeCommand(),
+    vscode.commands.registerCommand(
+      "cofire.enterPromtToGetCode",
+      registerSuggestCodeCommand
+    ),
     vscode.commands.registerCommand("cofire.chatWithAI", () =>
       openAIChatPanel(context)
     ),
@@ -20,6 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
       { pattern: "**" },
       inlineCompletionProvider
     )
+
   );
 }
 
