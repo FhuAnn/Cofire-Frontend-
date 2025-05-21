@@ -1,17 +1,6 @@
 import axios from "axios";
 import * as vscode from "vscode";
 
-// export async function callContextCompletionAI(
-//   language: string,
-//   context: string
-// ) {
-//   const res = await axios.post("http://localhost:5000/suggest", {
-//     language,
-//     context: context,
-//   });
-//   return res.data;
-// }
-
 export async function callManualCompletionAI(
   prompt: string,
   language: string,
@@ -93,5 +82,20 @@ export async function callChatAI(userPrompt: string): Promise<string> {
     fullPrompt: userPrompt,
   });
 
+  return response.data.data;
+}
+export async function callAPIInlineCompletionCode(
+  fullText: string,
+  codeUntilCursor: string,
+  language: string
+) {
+  const response = await axios.post(
+    "http://localhost:5000/api/inline-completion",
+    {
+      full: fullText,
+      codeUntilCursor: codeUntilCursor,
+      language: language,
+    }
+  );
   return response.data.data;
 }
