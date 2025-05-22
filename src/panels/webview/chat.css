@@ -68,6 +68,10 @@ li {
   margin-top: 4px;
   margin-bottom: 4px;
 }
+.fileAttach:hover {
+  background-color: #159efa;
+  cursor: pointer;
+}
 
 pre {
   background: #f6f8fa;

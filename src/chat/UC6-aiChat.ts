@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { getChatHtml } from "../panels/chatPanel";
-import { callChatAI } from "../utils/apis";
+import { requestPrompt } from "./function/requestPrompt";
+import { handleGotoSelection } from "./function/goToSelection";
 
 let currentPanel: vscode.WebviewPanel | undefined;
 let currentCode: string = "";
@@ -13,9 +14,31 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
       currentCode = editor.document.getText();
       currentFileName =
         editor.document.fileName.split(/[/\\]/).pop() ?? "No content";
+      //Lấy selection nếu có
+      const selection = editor.selection;
+      let selectedCode = "";
+      let selectionStart = 0;
+      let selectionEnd = 0;
+      let selectionStartCharacter = 0;
+      let selectionEndCharacter = 0;
+      if (!selection.isEmpty) {
+        selectedCode = editor.document.getText(selection);
+        selectionStart = selection.start.line + 1; // dòng bắt đầu (1-based)
+        selectionEnd = selection.end.line + 1; // dòng kết thúc (1-based)
+        selectionStartCharacter = selection.start.character;
+        selectionEndCharacter = selection.end.character;
+      }
       if (currentPanel) {
-        console.log("currentFileName", currentFileName);
-        sendCodeToPanel(currentPanel, currentCode, currentFileName);
+        sendCodeToPanel(
+          currentPanel,
+          currentCode,
+          currentFileName,
+          selectedCode,
+          selectionStart,
+          selectionEnd,
+          selectionStartCharacter,
+          selectionEndCharacter
+        );
       }
     }
   };
@@ -36,44 +59,21 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
 
   currentPanel = panel;
 
-  panel.webview.html =getChatHtml(panel, context);
-
+  panel.webview.html = getChatHtml(panel, context);
 
   panel.webview.onDidReceiveMessage(async (message) => {
-    const { prompt, code, filename } = message;
-    const fullPrompt = `File: ${filename}
-
-You are an expert developer assistant.
-
-A user has a specific request. Prioritize fully understanding and responding to the user's intent **before** referring to the provided code. Only refer to the code as supporting context.
-
----
-
-**User Request:**
-${prompt}
-
----
-
-**Code Context** (for reference only):
-\`\`\`
-${code}
-\`\`\`
-
-Your task:
-- Focus mainly on addressing the user's request.
-- If the user asks for improvements, suggest refactored code.
-- If the user wants explanations, explain clearly and concisely.
-- If the user is debugging, identify issues and recommend fixes.
-- Only respond with code if explicitly asked or when it improves clarity.
-- **Respect the language used in the user request.**
-
-Return only the appropriate output, as if you're directly replying to the user, not restating the prompt.
-`;
-    try {
-      const aiAnswer = await callChatAI(fullPrompt);
-      panel.webview.postMessage({ reply: aiAnswer });
-    } catch (err: any) {
-      panel.webview.postMessage({ reply: "Lỗi khi gọi API" });
+    switch (message.type) {
+      case "gotoSelection":
+        console.log("click button file name");
+        await handleGotoSelection(message);
+        break;
+      case "sendPromptToModel": {
+        await requestPrompt(message, panel);
+        break;
+      }
+      default:
+        // Có thể xử lý các loại message khác ở đây nếu cần
+        break;
     }
   });
   panel.onDidDispose(() => {
@@ -85,12 +85,29 @@ Return only the appropriate output, as if you're directly replying to the user, 
   vscode.window.onDidChangeActiveTextEditor(() => {
     updateEditorContent();
   });
+  vscode.window.onDidChangeTextEditorSelection(() => {
+    updateEditorContent();
+  });
 }
 function sendCodeToPanel(
   panel: vscode.WebviewPanel,
   code: string,
-  fileName: string
+  fileName: string,
+  selectedCode?: string,
+  selectionStart?: number,
+  selectionEnd?: number,
+  selectionStartCharacter?: number,
+  selectionEndCharacter?: number
 ) {
-  console.log("changeee", fileName);
-  panel.webview.postMessage({ type: "update", code, fileName });
+  // console.log("changeee", fileName, selectionStart);
+  panel.webview.postMessage({
+    type: "update",
+    code,
+    fileName,
+    selectedCode,
+    selectionStart,
+    selectionEnd,
+    selectionStartCharacter,
+    selectionEndCharacter,
+  });
 }

@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import { checkBackendStatus } from "./utils/apis";
-import { recommmendCodeTyping } from "./commands/UC2-complementContinousCodeTyping";
 import { registerBlockGenCommand } from "./commands/UC3-registerBlockGenCommand";
 import { registerExplainCodeCommand } from "./commands/UC4-explainCode";
 import { registerSuggestCodeCommand } from "./commands/UC5-controlToPrompt";
@@ -10,7 +9,6 @@ import { inlineCompletionProvider } from "./providers/UC2temp-commandProvider";
 export function activate(context: vscode.ExtensionContext) {
   checkBackendStatusStart();
   context.subscriptions.push(
-    // recommmendCodeTyping(),
     registerBlockGenCommand(),
     registerExplainCodeCommand(),
     vscode.commands.registerCommand(
@@ -24,14 +22,13 @@ export function activate(context: vscode.ExtensionContext) {
       { pattern: "**" },
       inlineCompletionProvider
     )
-
   );
 }
 
 async function checkBackendStatusStart() {
   try {
     const result = await checkBackendStatus();
-    console.log(result);
+    // console.log(result);
     if (result.status === "ready") {
       vscode.window.showInformationMessage("✅ Cofire đã sẵn sàng!");
     } else {

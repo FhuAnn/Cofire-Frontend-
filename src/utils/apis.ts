@@ -77,7 +77,7 @@ export async function callExplainCodeAI(code: string, language: string) {
 }
 
 export async function callChatAI(userPrompt: string): Promise<string> {
-  console.log("call api chatAI", userPrompt);
+  //console.log("call api chatAI", userPrompt);
   const response = await axios.post("http://localhost:5000/api/chat", {
     fullPrompt: userPrompt,
   });
@@ -100,4 +100,3 @@ export async function callAPIInlineCompletionCode(
   );
   return response.data.data;
 }
-
