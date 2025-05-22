@@ -11,7 +11,6 @@ let selectionEnd = 0;
 let selectionStartCharacter = 0;
 let selectionEndCharacter = 0;
 function send() {
-  console.log("hello");
   const q = questionInput.value;
   if (!q) return;
   chatBox.innerHTML += `<div class='q'>🙋‍♂️ Bạn: ${q}</div>`;
