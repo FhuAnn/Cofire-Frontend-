@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 export async function handleGotoSelection(message: any) {
   const {
+    relativePath,
     fileName,
     selectionStart,
     selectionEnd,
@@ -8,20 +9,22 @@ export async function handleGotoSelection(message: any) {
     selectionEndCharacter,
   } = message;
   // Tìm file đang mở trong workspace
-  const files = await vscode.workspace.findFiles(`**/${fileName}`);
+  const files = await vscode.workspace.findFiles(relativePath);
   if (files.length > 0) {
     const doc = await vscode.workspace.openTextDocument(files[0]);
     const editor = await vscode.window.showTextDocument(
       doc,
       vscode.ViewColumn.One
     );
+    const safeLine = (line: number | undefined) => Math.max(0, (line ?? 1) - 1);
+
     // Chuyển selection về 0-based
     const start = new vscode.Position(
-      (selectionStart ?? 1) - 1,
+      safeLine(selectionStart),
       selectionStartCharacter ?? 0
     );
     const end = new vscode.Position(
-      (selectionEnd ?? 1) - 1,
+      safeLine(selectionEnd),
       selectionEndCharacter ?? 0
     );
     editor.selection = new vscode.Selection(start, end);

@@ -10,40 +10,54 @@ let selectionStart = 0;
 let selectionEnd = 0;
 let selectionStartCharacter = 0;
 let selectionEndCharacter = 0;
+let attachedFiles = [];
 function send() {
   const q = questionInput.value;
   if (!q) return;
-  chatBox.innerHTML += `<div class='q'>🙋‍♂️ Bạn: ${q}</div>`;
-  chatBox.innerHTML += `<div class='fileAttach' id=${
-    "fileAttach" +
-    currentFilename +
+  chatBox.insertAdjacentHTML("beforeend", `<div class='q'>🙋‍♂️ Bạn: ${q}</div>`);
+  let initialID =
+    "fileAttach_" +
+    (currentFilename || "") +
+    "_" +
     selectionStart +
+    "_" +
     selectionEnd +
+    "_" +
     selectionStartCharacter +
-    selectionEndCharacter
-  }>File ${
-    selectedCode
-      ? currentFilename + ` dòng ${selectionStart} - ${selectionEnd}  `
-      : currentFilename
-  }</div>`;
-  const fileDiv = document.getElementById(
-    "fileAttach" +
-      currentFilename +
-      selectionStart +
-      selectionEnd +
-      selectionStartCharacter +
-      selectionEndCharacter
+    "_" +
+    selectionEndCharacter +
+    "_" +
+    Date.now() +
+    "_" +
+    Math.floor(Math.random() * 10000);
+  chatBox.insertAdjacentHTML(
+    "beforeend",
+    `<div class='fileAttach' id=${initialID}>File ${
+      selectedCode
+        ? currentFilename + ` dòng ${selectionStart} - ${selectionEnd}  `
+        : currentFilename
+    }</div>`
   );
+  const fileDiv = document.getElementById(initialID);
   if (fileDiv) {
+    // Lưu lại giá trị tại thời điểm tạo nút
+    const fileNameAtClick = currentFilename;
+    const selectionStartAtClick = selectionStart;
+    const selectionEndAtClick = selectionEnd;
+    const selectionStartCharacterAtClick = selectionStartCharacter;
+    const selectionEndCharacterAtClick = selectionEndCharacter;
+    const relativePathAtClick = relativePath;
+
     fileDiv.onclick = () => {
-      // Gửi message về extension để nhảy tới file/selection
+      console.log("fileDiv clicked", relativePathAtClick);
       vscode.postMessage({
         type: "gotoSelection",
-        fileName: currentFilename,
-        selectionStart: selectionStart,
-        selectionEnd: selectionStart,
-        selectionStartCharacter: selectionStartCharacter,
-        selectionEndCharacter: selectionEndCharacter,
+        fileName: fileNameAtClick,
+        selectionStart: selectionStartAtClick,
+        selectionEnd: selectionEndAtClick,
+        selectionStartCharacter: selectionStartCharacterAtClick,
+        selectionEndCharacter: selectionEndCharacterAtClick,
+        relativePath: relativePathAtClick,
       });
     };
   }
@@ -51,9 +65,7 @@ function send() {
   vscode.postMessage({
     type: "sendPromptToModel",
     prompt: q,
-    code: currentCode,
-    filename: currentFilename,
-    selectedCode: selectedCode,
+    files: attachedFiles,
   });
   questionInput.value = "";
 }
@@ -78,6 +90,7 @@ function extractCodeFromMarkdown(response) {
 
 window.addEventListener("message", (event) => {
   const data = event.data;
+  console.log("Received message from extension:", data);
   switch (data.type) {
     case "update":
       currentCode = data.code;
@@ -87,15 +100,17 @@ window.addEventListener("message", (event) => {
       selectionEnd = data.selectionEnd;
       selectionStartCharacter = data.selectionStartCharacter;
       selectionEndCharacter = data.selectionEndCharacter;
+      relativePath = data.relativePath;
       if (!selectedCode)
         currentFileDisplay.textContent = currentFilename + " current";
       else
         currentFileDisplay.textContent = `${currentFilename}: dòng ${selectionStart} - ${selectionEnd}`;
       break;
     case "reply":
-      chatBox.innerHTML += `<div class='robot'>🤖 AI: ${extractCodeFromMarkdown(
-        data.reply
-      )}</div>`;
+      chatBox.insertAdjacentHTML(
+        "beforeend",
+        `<div class='robot'>🤖 AI: ${extractCodeFromMarkdown(data.reply)}</div>`
+      );
       chatBox.scrollTop = chatBox.scrollHeight;
       break;
   }

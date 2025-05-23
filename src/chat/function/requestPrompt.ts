@@ -1,8 +1,14 @@
 import { callChatAI } from "../../utils/apis";
 import * as vscode from "vscode";
 export async function requestPrompt(message: any, panel: vscode.WebviewPanel) {
-  const { prompt, code, filename } = message;
-  const fullPrompt = `File: ${filename}
+  const { prompt, files } = message;
+  let filesSection = "";
+  if (Array.isArray(files)) {
+    filesSection = files
+      .map((f: any) => `File: ${f.filename}\n\`\`\`\n${f.code}\n\`\`\`\n`)
+      .join("\n");
+  }
+  const fullPrompt = `
     
     You are an expert developer assistant.
     
@@ -17,7 +23,7 @@ export async function requestPrompt(message: any, panel: vscode.WebviewPanel) {
     
     **Code Context** (for reference only):
     \`\`\`
-    ${code}
+    ${filesSection}
     \`\`\`
     
     Your task:

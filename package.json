@@ -34,9 +34,29 @@
       {
         "command": "cofire.chatWithAI",
         "title": "Chat with AI"
+      },
+      {
+        "command": "cofire.addFileToChat",
+        "title": "Add File to Chat"
+      },
+      {
+        "command": "cofire.addSelectionToChat",
+        "title": "Add Selection to Chat"
       }
     ],
     "menus": {
+      "explorer/context": [
+        {
+          "submenu": "cofire.menu",
+          "group": "navigation"
+        }
+      ],
+      "editor/title": [
+        {
+          "submenu": "cofire.menu",
+          "group": "navigation"
+        }
+      ],
       "editor/context": [
         {
           "submenu": "cofire.menu",
@@ -56,6 +76,15 @@
         },
         {
           "command": "cofire.chatWithAI",
+          "group": "navigation"
+        },
+        {
+          "command": "cofire.addFileToChat",
+          "group": "navigation"
+        },
+        {
+          "command": "cofire.addSelectionToChat",
+          "when": "editorHasSelection",
           "group": "navigation"
         }
       ]

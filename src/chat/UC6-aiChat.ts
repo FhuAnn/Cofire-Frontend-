@@ -28,8 +28,15 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         selectionStartCharacter = selection.start.character;
         selectionEndCharacter = selection.end.character;
       }
+      const fullPath = editor.document.fileName;
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(
+        editor.document.uri
+      );
+      const relativePath = workspaceFolder
+        ? vscode.workspace.asRelativePath(fullPath)
+        : fullPath;
       if (currentPanel) {
-        sendCodeToPanel(
+        sendCurentFileToPanel(
           currentPanel,
           currentCode,
           currentFileName,
@@ -37,7 +44,8 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
           selectionStart,
           selectionEnd,
           selectionStartCharacter,
-          selectionEndCharacter
+          selectionEndCharacter,
+          relativePath
         );
       }
     }
@@ -64,10 +72,10 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
   panel.webview.onDidReceiveMessage(async (message) => {
     switch (message.type) {
       case "gotoSelection":
-        console.log("click button file name");
         await handleGotoSelection(message);
         break;
       case "sendPromptToModel": {
+        // Gửi prompt đến model
         await requestPrompt(message, panel);
         break;
       }
@@ -80,7 +88,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
     currentPanel = undefined;
   });
   //gửi dữ liệu ban đầu
-  sendCodeToPanel(panel, currentCode, currentFileName);
+  sendCurentFileToPanel(panel, currentCode, currentFileName);
   //theo dõi thay đổi focus editor
   vscode.window.onDidChangeActiveTextEditor(() => {
     updateEditorContent();
@@ -89,7 +97,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
     updateEditorContent();
   });
 }
-function sendCodeToPanel(
+function sendCurentFileToPanel(
   panel: vscode.WebviewPanel,
   code: string,
   fileName: string,
@@ -97,7 +105,8 @@ function sendCodeToPanel(
   selectionStart?: number,
   selectionEnd?: number,
   selectionStartCharacter?: number,
-  selectionEndCharacter?: number
+  selectionEndCharacter?: number,
+  relativePath?: string
 ) {
   // console.log("changeee", fileName, selectionStart);
   panel.webview.postMessage({
@@ -109,5 +118,6 @@ function sendCodeToPanel(
     selectionEnd,
     selectionStartCharacter,
     selectionEndCharacter,
+    relativePath,
   });
 }
