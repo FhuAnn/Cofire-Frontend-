@@ -110,6 +110,11 @@
         "command": "ai-suggest.explainCode",
         "key": "ctrl+alt+e",
         "when": "editorTextFocus && editorHasSelection"
+      },
+      {
+        "command": "cofire.chatWithAI",
+        "key": "ctrl+alt+i",
+        "title": "Chat with AI"
       }
     ]
   },

@@ -2,8 +2,8 @@ import * as vscode from "vscode";
 import { getChatHtml } from "../panels/chatPanel";
 import { requestPrompt } from "./function/requestPrompt";
 import { handleGotoSelection } from "./function/goToSelection";
+import { currentPanel, setCurrentPanel } from "../panels/panelState";
 
-let currentPanel: vscode.WebviewPanel | undefined;
 let currentCode: string = "";
 let currentFileName: string = "";
 
@@ -65,7 +65,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
     }
   );
 
-  currentPanel = panel;
+  setCurrentPanel(panel);
 
   panel.webview.html = getChatHtml(panel, context);
 
@@ -79,13 +79,44 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         await requestPrompt(message, panel);
         break;
       }
+      case "attachFile": {
+        const files = await vscode.workspace.findFiles(
+          "**/*",
+          "**/node_modules/**"
+        );
+        const items = files.map((uri) => ({
+          label: vscode.workspace.asRelativePath(uri),
+          uri,
+        }));
+        const picked = await vscode.window.showQuickPick(items, {
+          placeHolder: "Tìm và chọn file context để đính kèm",
+        });
+        if (picked) {
+          const fileUri = picked.uri;
+          const fileName = fileUri.path.split("/").pop() || fileUri.fsPath;
+          const content = (
+            await vscode.workspace.fs.readFile(fileUri)
+          ).toString();
+          const workspaceFolder = vscode.workspace.getWorkspaceFolder(fileUri);
+          const relativePath = workspaceFolder
+            ? vscode.workspace.asRelativePath(fileUri)
+            : fileUri.fsPath;
+          panel.webview.postMessage({
+            type: "fileAttached",
+            fileName,
+            relativePath,
+            content,
+          });
+        }
+        break;
+      }
       default:
         // Có thể xử lý các loại message khác ở đây nếu cần
         break;
     }
   });
   panel.onDidDispose(() => {
-    currentPanel = undefined;
+    setCurrentPanel(undefined);
   });
   //gửi dữ liệu ban đầu
   sendCurentFileToPanel(panel, currentCode, currentFileName);

@@ -7,14 +7,23 @@
   </head>
   <body>
     <main id="container">
+      <section id="chatBox"></section>
       <section id="fileInfo">
-        📄 Đang xem: <span id="currentFile">...</span>
+        <button id="attachFileBtn">Add context file</button>
+        <span style="color: rgb(80, 80, 80);">📄File current:</span>
+        <div class="fileCard" id="currentFileTag">
+          <span id="currentFile">...</span>
+          <span class="subtext">current</span>
+        </div>
       </section>
 
-      <section id="chatBox"></section>
-
       <section id="inputContainer">
-        <input id="question" placeholder="Nhập câu hỏi..." autocomplete="off" />
+        <textarea
+          id="question"
+          placeholder="Nhập câu hỏi..."
+          autocomplete="off"
+          rows="1"
+        ></textarea>
         <button id="sendBtn" onclick="send()">Gửi</button>
       </section>
     </main>
