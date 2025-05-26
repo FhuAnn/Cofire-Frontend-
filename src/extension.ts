@@ -1,39 +1,50 @@
-import * as vscode from 'vscode';
-import axios from 'axios';
+import * as vscode from "vscode";
+import { checkBackendStatus } from "./utils/apis";
+import { registerBlockGenCommand } from "./commands/UC3-registerBlockGenCommand";
+import { registerExplainCodeCommand } from "./commands/UC4-explainCode";
+import { registerSuggestCodeCommand } from "./commands/UC5-controlToPrompt";
+import { openAIChatPanel } from "./chat/UC6-aiChat";
+import { inlineCompletionProvider } from "./providers/UC2temp-commandProvider";
+import { addFileToChat } from "./chat/UC6-1-addFileToChat";
+import { addSelectionToChat } from "./chat/UC6-2-addSelectionToChat";
 
 export function activate(context: vscode.ExtensionContext) {
-    const provider = vscode.languages.registerCompletionItemProvider(
-        ['javascript', 'typescript', 'python', 'csharp'],
-        {
-            async provideCompletionItems(document, position) {
-                const textBeforeCursor = document.getText(new vscode.Range(
-                    new vscode.Position(Math.max(0, position.line - 10), 0),
-                    position
-                ));
+  checkBackendStatusStart();
+  context.subscriptions.push(
+    registerBlockGenCommand(),
+    registerExplainCodeCommand(),
+    vscode.commands.registerCommand(
+      "cofire.enterPromtToGetCode",
+      registerSuggestCodeCommand
+    ),
+    vscode.commands.registerCommand("cofire.chatWithAI", () =>
+      openAIChatPanel(context)
+    ),
+    vscode.languages.registerInlineCompletionItemProvider(
+      { pattern: "**" },
+      inlineCompletionProvider
+    ),
+    vscode.commands.registerCommand("cofire.addFileToChat", (fileUri) =>
+      addFileToChat(context, fileUri)
+    ),
+    vscode.commands.registerCommand("cofire.addSelectionToChat", () =>
+      addSelectionToChat(context)
+    )
+  );
+}
 
-                const payload = {
-                    language: document.languageId,
-                    context: textBeforeCursor
-                };
-
-                try {
-                    const res = await axios.post('http://localhost:5000/suggest', payload);
-                    const suggestions = res.data.suggestions || [];
-
-                    return suggestions.map((item: any) => {
-                        const completion = new vscode.CompletionItem(item.label, vscode.CompletionItemKind.Snippet);
-                        completion.insertText = item.insertText;
-                        completion.detail = item.detail;
-                        return completion;
-                    });
-                } catch (err) {
-                    vscode.window.showErrorMessage('AI Suggestion Error');
-                    return [];
-                }
-            }
-        },
-        '.' // Trigger sau dấu `.`
+async function checkBackendStatusStart() {
+  try {
+    const result = await checkBackendStatus();
+    // console.log(result);
+    if (result.status === "ready") {
+      vscode.window.showInformationMessage("✅ Cofire đã sẵn sàng!");
+    } else {
+      vscode.window.showWarningMessage("⚠️ Cofire chưa sẵn sàng.");
+    }
+  } catch (error: any) {
+    vscode.window.showErrorMessage(
+      `❌ Không thể kết nối Backend: ${error.message}`
     );
-
-    context.subscriptions.push(provider);
+  }
 }

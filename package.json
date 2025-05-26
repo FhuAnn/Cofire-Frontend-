@@ -9,16 +9,114 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": ["*"],
+  "activationEvents": [
+    "*"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "cofire.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "ai-suggest.suggestFunctionBlock",
+        "title": "AI: Suggest Function/Block"
+      },
+      {
+        "command": "cofire.explainCode",
+        "title": "AI: Explain Selected Code"
+      },
+      {
+        "command": "cofire.enterPromtToGenerateFile",
+        "title": "Enter promt"
+      },
+      {
+        "command": "cofire.chatWithAI",
+        "title": "Chat with AI"
+      },
+      {
+        "command": "cofire.addFileToChat",
+        "title": "Add File to Chat"
+      },
+      {
+        "command": "cofire.addSelectionToChat",
+        "title": "Add Selection to Chat"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "submenu": "cofire.menu",
+          "group": "navigation"
+        }
+      ],
+      "editor/title": [
+        {
+          "submenu": "cofire.menu",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "submenu": "cofire.menu",
+          "group": "navigation"
+        }
+      ],
+      "cofire.menu": [
+        {
+          "command": "ai-suggest.suggestFunctionBlock",
+          "when": "editorHasSelection",
+          "group": "navigation"
+        },
+        {
+          "command": "cofire.explainCode",
+          "when": "editorHasSelection",
+          "group": "navigation"
+        },
+        {
+          "command": "cofire.chatWithAI",
+          "group": "navigation"
+        },
+        {
+          "command": "cofire.addFileToChat",
+          "group": "navigation"
+        },
+        {
+          "command": "cofire.addSelectionToChat",
+          "when": "editorHasSelection",
+          "group": "navigation"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "cofire.menu",
+        "label": "Cofire"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "cofire.enterPromtToGetCode",
+        "key": "ctrl+i",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "ai-suggest.suggestFunctionBlock",
+        "key": "ctrl+alt+b",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "ai-suggest.explainCode",
+        "key": "ctrl+alt+e",
+        "when": "editorTextFocus && editorHasSelection"
+      },
+      {
+        "command": "cofire.chatWithAI",
+        "key": "ctrl+alt+i",
+        "title": "Chat with AI"
       }
     ]
-
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
