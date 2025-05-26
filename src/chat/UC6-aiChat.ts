@@ -72,6 +72,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
   panel.webview.onDidReceiveMessage(async (message) => {
     switch (message.type) {
       case "gotoSelection":
+        console.log("gotoSelection", message);
         await handleGotoSelection(message);
         break;
       case "sendPromptToModel": {
