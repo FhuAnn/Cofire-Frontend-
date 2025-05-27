@@ -43,30 +43,29 @@ function addAttachFileOnClick(file) {
     `<div class='fileAttach' id=${initialID}>File ${
       file.selectedCode
         ? file.fileName +
-          ` dòng ${file.selectionStart} - ${file.selectionEnd}  `
+          ` line ${file.selectionStart} - ${file.selectionEnd}  `
         : file.fileName
     }</div>`
   );
   const fileDiv = document.getElementById(initialID);
   if (fileDiv) {
-    // // Lưu lại giá trị tại thời điểm tạo nút
-    // const fileNameAtClick = file.fileName;
-    // const selectionStartAtClick = file.selectionStart;
-    // const selectionEndAtClick = file.selectionEnd;
-    // const selectionStartCharacterAtClick = file.selectionStartCharacter;
-    // const selectionEndCharacterAtClick = file.electionEndCharacter;
-    // const relativePathAtClick = file.relativePath;
-
+    // Lưu lại giá trị tại thời điểm tạo nút
+    const fileNameAtClick = file.fileName;
+    const selectionStartAtClick = file.selectionStart;
+    const selectionEndAtClick = file.selectionEnd;
+    const selectionStartCharacterAtClick = file.selectionStartCharacter;
+    const selectionEndCharacterAtClick = file.selectionEndCharacter;
+    const relativePathAtClick = file.relativePath;
     fileDiv.onclick = () => {
       console.log("fileDiv clicked", relativePathAtClick);
       vscode.postMessage({
         type: "gotoSelection",
-        fileName: file.fileName,
-        selectionStart: file.selectionStart,
-        selectionEnd: file.selectionEnd,
-        selectionStartCharacter: file.selectionStartCharacter,
-        selectionEndCharacter: file.electionEndCharacter,
-        relativePath: file.relativePath,
+        fileName: fileNameAtClick,
+        selectionStart: selectionStartAtClick,
+        selectionEnd: selectionEndAtClick,
+        selectionStartCharacter: selectionStartCharacterAtClick,
+        selectionEndCharacter: selectionEndCharacterAtClick,
+        relativePath: relativePathAtClick,
       });
     };
   }
@@ -77,10 +76,15 @@ function send() {
   if (!q) return;
   chatBox.insertAdjacentHTML("beforeend", `<div class='q'>🙋‍♂️ Bạn: ${q}</div>`);
 
-  let filesToSend = [...state.attachedFiles];
+  let filesToSend = [];
   if (
-    state.currentFile.fileName &&
-    !filesToSend.some((f) => f.fileName === state.cu && !f.type)
+    !filesToSend.some(
+      (f) =>
+        f.relativePath === state.currentFile.relativePath &&
+        !f.type &&
+        (f.type !== "selection" ||
+          f.selectedCode === state.currentFile.selectedCode)
+    )
   ) {
     filesToSend.push({
       fileName: state.currentFile.fileName,
@@ -91,7 +95,9 @@ function send() {
           : "",
     });
   }
+  filesToSend = [...filesToSend, ...state.attachedFiles];
   filesToSend.map((file) => {
+    // console.log("Adding attach file on click:", file);
     addAttachFileOnClick(file);
   });
   vscode.postMessage({
@@ -101,6 +107,10 @@ function send() {
   });
   questionInput.value = "";
   state.attachedFiles = []; // Reset mảng attachedFiles sau khi gửi
+  // Xóa các phần tử fileAttach trên UI
+  const fileAttachElements =
+    attachedFilesDisplay.querySelectorAll(".fileAttach");
+  fileAttachElements.forEach((el) => el.remove());
 }
 function extractCodeFromMarkdown(response) {
   // Tách phần code block nếu có
@@ -123,10 +133,10 @@ function extractCodeFromMarkdown(response) {
 
 window.addEventListener("message", (event) => {
   const data = event.data;
-  console.log("Received message from extension:", data);
+  //console.log("Received message from extension:", data);
   switch (data.type) {
     case "update":
-      console.log("Update current file:", data);
+      console.log("Relative path file:", data.relativePath);
       state.currentFile.code = data.code;
       state.currentFile.fileName = data.fileName;
       state.currentFile.selectedCode = data.selectedCode;
@@ -191,6 +201,7 @@ window.addEventListener("message", (event) => {
       break;
     }
     case "selectionAttached": {
+      console.log("Selection attached:", state.attachedFiles);
       // Kiểm tra trùng selection (dựa vào file + vị trí dòng)
       if (
         state.attachedFiles.some(
@@ -200,7 +211,6 @@ window.addEventListener("message", (event) => {
             f.selectionEnd === data.selectionEnd
         )
       ) {
-        // alert("Đoạn code này đã được đính kèm!");
         return;
       }
       //console.log("Selection attached:", data);
@@ -214,17 +224,17 @@ window.addEventListener("message", (event) => {
         selectionEndCharacter: data.selectionEndCharacter,
         type: "selection",
       };
-      attachedFiles.push(fileObj);
+      state.attachedFiles.push(fileObj);
 
       // Hiển thị lên giao diện
       const fileDiv = document.createElement("div");
       fileDiv.className = "fileAttach";
-      fileDiv.textContent = `${data.fileName}: dòng ${data.selectionStart} - ${data.selectionEnd}`;
+      fileDiv.textContent = `${data.fileName}: line ${data.selectionStart} - ${data.selectionEnd}`;
       fileDiv.title = data.fileName;
 
       const fileNameSpan = document.createElement("span");
       fileNameSpan.className = "fileName";
-      fileNameSpan.textContent = `${data.fileName} )`;
+      fileNameSpan.textContent = `${data.fileName}`;
       fileDiv.appendChild(fileNameSpan);
 
       const removeBtn = document.createElement("div");

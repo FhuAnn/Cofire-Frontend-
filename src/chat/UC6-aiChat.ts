@@ -6,6 +6,7 @@ import { currentPanel, setCurrentPanel } from "../panels/panelState";
 
 let currentCode: string = "";
 let currentFileName: string = "";
+let relativePath: string = "";
 
 export function openAIChatPanel(context: vscode.ExtensionContext) {
   const updateEditorContent = () => {
@@ -120,7 +121,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
     setCurrentPanel(undefined);
   });
   //gửi dữ liệu ban đầu
-  sendCurentFileToPanel(panel, currentCode, currentFileName);
+  sendCurentFileToPanel(panel, currentCode, currentFileName, relativePath);
   //theo dõi thay đổi focus editor
   vscode.window.onDidChangeActiveTextEditor(() => {
     updateEditorContent();
