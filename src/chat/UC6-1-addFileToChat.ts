@@ -5,24 +5,34 @@ export async function addFileToChat(
   context: vscode.ExtensionContext,
   fileUri: vscode.Uri
 ) {
-    console.log("addFileToChat called with fileUri:", fileUri.toString());
+  console.log("addFileToChat called with fileUri:", fileUri.toString());
   // Nếu panel chưa mở, mở panel chat
   if (!currentPanel) {
     openAIChatPanel(context);
   }
-  // Đọc nội dung file
-  const fileName = fileUri.path.split("/").pop() || fileUri.fsPath;
-  const content = (await vscode.workspace.fs.readFile(fileUri)).toString();
+    const stat = await vscode.workspace.fs.stat(fileUri);
   const workspaceFolder = vscode.workspace.getWorkspaceFolder(fileUri);
   const relativePath = workspaceFolder
     ? vscode.workspace.asRelativePath(fileUri)
     : fileUri.fsPath;
 
-  // Gửi message sang webview
-  currentPanel?.webview.postMessage({
-    type: "fileAttached",
-    fileName,
-    relativePath,
-    content,
-  });
+  if (stat.type === vscode.FileType.Directory) {
+    // Nếu là folder, gửi thông tin folder
+    currentPanel?.webview.postMessage({
+      type: "folderAttached",
+      folderName: fileUri.path.split("/").pop() || fileUri.fsPath,
+      relativePath,
+      folderUri: fileUri.toString(),
+    });
+  } else {
+    // Nếu là file, gửi nội dung file như cũ
+    const fileName = fileUri.path.split("/").pop() || fileUri.fsPath;
+    const content = (await vscode.workspace.fs.readFile(fileUri)).toString();
+    currentPanel?.webview.postMessage({
+      type: "fileAttached",
+      fileName,
+      relativePath,
+      content,
+    });
+  }
 }

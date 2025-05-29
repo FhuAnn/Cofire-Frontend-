@@ -25,7 +25,7 @@ function addAttachFileOnClick(file) {
   console.log("Adding attach file on click:", file);
   let initialID =
     "fileAttach_" +
-    (file.fileName || "") +
+    (file.fileName || file.folderName || "") +
     "_" +
     (file.selectionStart || "") +
     "_" +
@@ -44,13 +44,13 @@ function addAttachFileOnClick(file) {
       file.selectedCode
         ? file.fileName +
           ` line ${file.selectionStart} - ${file.selectionEnd}  `
-        : file.fileName
+        : (file.fileName || "[Folder]" + file.folderName) + " "
     }</div>`
   );
   const fileDiv = document.getElementById(initialID);
   if (fileDiv) {
     // Lưu lại giá trị tại thời điểm tạo nút
-    const fileNameAtClick = file.fileName;
+    const nameAtClick = file.fileName ? file.fileName : file.folderName;
     const selectionStartAtClick = file.selectionStart;
     const selectionEndAtClick = file.selectionEnd;
     const selectionStartCharacterAtClick = file.selectionStartCharacter;
@@ -60,12 +60,14 @@ function addAttachFileOnClick(file) {
       console.log("fileDiv clicked", relativePathAtClick);
       vscode.postMessage({
         type: "gotoSelection",
-        fileName: fileNameAtClick,
+        typeAttached: file.type,
+        name: nameAtClick,
         selectionStart: selectionStartAtClick,
         selectionEnd: selectionEndAtClick,
         selectionStartCharacter: selectionStartCharacterAtClick,
         selectionEndCharacter: selectionEndCharacterAtClick,
         relativePath: relativePathAtClick,
+        folderUri: file.folderUri || undefined,
       });
     };
   }
@@ -247,6 +249,47 @@ window.addEventListener("message", (event) => {
       };
       fileDiv.appendChild(removeBtn);
       attachedFilesDisplay.appendChild(fileDiv);
+
+      questionInput.focus();
+      break;
+    }
+    case "folderAttached": {
+      // Kiểm tra trùng folder
+      if (
+        state.attachedFiles.some(
+          (f) => f.relativePath === data.relativePath && f.type === "folder"
+        )
+      ) {
+        return;
+      }
+      console.log("Folder attached:", data);
+      const folderObj = {
+        folderName: data.folderName,
+        relativePath: data.relativePath,
+        folderUri: data.folderUri,
+        type: "folder",
+      };
+      state.attachedFiles.push(folderObj);
+
+      // Xoá các phần tử fileAttach cũ nếu có
+      // Hiển thị lên giao diện
+      const folderDiv = document.createElement("div");
+      folderDiv.className = "fileAttach";
+      folderDiv.textContent = `[Folder] ${data.folderName}`;
+      folderDiv.title = data.folderName;
+
+      const removeBtn = document.createElement("div");
+      removeBtn.className = "remove";
+      removeBtn.title = "Remove folder";
+      removeBtn.textContent = "X";
+      removeBtn.onclick = () => {
+        state.attachedFiles = state.attachedFiles.filter(
+          (f) => f !== folderObj
+        );
+        attachedFilesDisplay.removeChild(folderDiv);
+      };
+      folderDiv.appendChild(removeBtn);
+      attachedFilesDisplay.appendChild(folderDiv);
 
       questionInput.focus();
       break;
