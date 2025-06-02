@@ -10,11 +10,12 @@
       <section id="chatBox"></section>
       <section id="fileInfo">
         <button id="attachFileBtn">Add context file</button>
-        <span style="color: rgb(80, 80, 80);">📄File current:</span>
+        <span style="color: rgb(80, 80, 80)">📄File current:</span>
         <div class="fileCard" id="currentFileTag">
           <span id="currentFile">...</span>
           <span class="subtext">current</span>
         </div>
+        <div id="addFiles"></div>
       </section>
 
       <section id="inputContainer">
@@ -25,6 +26,17 @@
           rows="1"
         ></textarea>
         <button id="sendBtn" onclick="send()">Gửi</button>
+        <div
+          id="dropZone"
+          style="
+            border: 2px dashed #aaa;
+            padding: 16px;
+            margin-bottom: 8px;
+            text-align: center;
+          "
+        >
+          Kéo và thả file vào đây để đính kèm
+        </div>
       </section>
     </main>
 

@@ -2,15 +2,29 @@ import * as vscode from "vscode";
 export async function handleGotoSelection(message: any) {
   const {
     relativePath,
-    fileName,
+    name,
     selectionStart,
     selectionEnd,
     selectionStartCharacter,
     selectionEndCharacter,
+    typeAttached,
+    folderUri,
   } = message;
-  // Tìm file đang mở trong workspace
+  //console.log("gotoSelection", message)
+  // Nếu là folder thì mở folder trong Explorer
+  if (typeAttached === "folder" || (!name && folderUri)) {
+    const uri = folderUri
+      ? vscode.Uri.parse(folderUri)
+      : vscode.Uri.file(relativePath);
+    await vscode.commands.executeCommand("revealInExplorer", uri);
+    //console.log("it is folder, open in explorer");
+    return;
+  }
+  // console.log("it is not folder, open in explorer", typeAttached);
+
+  // Nếu là file thì nhảy tới selection như cũ
   const files = await vscode.workspace.findFiles(relativePath);
-  if (files.length > 0) {
+  if (files.length > 0) { 
     const doc = await vscode.workspace.openTextDocument(files[0]);
     const editor = await vscode.window.showTextDocument(
       doc,
@@ -33,6 +47,6 @@ export async function handleGotoSelection(message: any) {
       vscode.TextEditorRevealType.InCenter
     );
   } else {
-    vscode.window.showWarningMessage(`Không tìm thấy file: ${fileName}`);
+    vscode.window.showWarningMessage(`Không tìm thấy file: ${name}`);
   }
 }

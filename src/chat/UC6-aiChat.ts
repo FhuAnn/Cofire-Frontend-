@@ -1,4 +1,6 @@
 import * as vscode from "vscode";
+import * as path from "path";
+
 import { getChatHtml } from "../panels/chatPanel";
 import { requestPrompt } from "./function/requestPrompt";
 import { handleGotoSelection } from "./function/goToSelection";
@@ -6,7 +8,7 @@ import { currentPanel, setCurrentPanel } from "../panels/panelState";
 
 let currentCode: string = "";
 let currentFileName: string = "";
-
+let relativePath: string = "";
 export function openAIChatPanel(context: vscode.ExtensionContext) {
   const updateEditorContent = () => {
     const editor = vscode.window.activeTextEditor;
@@ -52,13 +54,13 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
   };
   updateEditorContent();
   if (currentPanel) {
-    currentPanel.reveal();
+    currentPanel.reveal(vscode.ViewColumn.Two, true);
     return;
   }
   const panel = vscode.window.createWebviewPanel(
     "chatWithAI",
     "Chat with AI",
-    vscode.ViewColumn.Beside,
+    { viewColumn: vscode.ViewColumn.Beside, preserveFocus: false },
     {
       enableScripts: true,
       retainContextWhenHidden: true,
@@ -72,45 +74,129 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
   panel.webview.onDidReceiveMessage(async (message) => {
     switch (message.type) {
       case "gotoSelection":
-        console.log("gotoSelection", message);
+        //console.log("gotoSelection", message);
         await handleGotoSelection(message);
         break;
       case "sendPromptToModel": {
-        // Gửi prompt đến model
-        await requestPrompt(message, panel);
+        let filesToSend = [];
+        for (const f of message.files) {
+          if (f.type === "folder") {
+            const folderUri = vscode.Uri.parse(f.folderUri);
+            const files = await vscode.workspace.findFiles(
+              new vscode.RelativePattern(folderUri, "**/*"),
+              "**/node_modules/**"
+            );
+            for (const fileUri of files) {
+              const fileName = fileUri.path.split("/").pop() || fileUri.fsPath;
+              const content = (
+                await vscode.workspace.fs.readFile(fileUri)
+              ).toString();
+              const workspaceFolder =
+                vscode.workspace.getWorkspaceFolder(fileUri);
+              const relativePath = workspaceFolder
+                ? vscode.workspace.asRelativePath(fileUri)
+                : fileUri.fsPath;
+              filesToSend.push({
+                fileName,
+                relativePath,
+                content,
+              });
+            }
+          } else {
+            filesToSend.push(f);
+          }
+        }
+        // Gửi prompt và filesToSend tới model
+        await requestPrompt({ ...message, files: filesToSend }, panel);
         break;
       }
       case "attachFile": {
-        const files = await vscode.workspace.findFiles(
-          "**/*",
+        // Lấy tất cả file và folder trong workspace (trừ node_modules)
+        const filesAndFolders = await vscode.workspace.findFiles(
+          "**",
           "**/node_modules/**"
         );
-        const items = files.map((uri) => ({
+        const items = filesAndFolders.map((uri) => ({
           label: vscode.workspace.asRelativePath(uri),
           uri,
         }));
         const picked = await vscode.window.showQuickPick(items, {
-          placeHolder: "Tìm và chọn file context để đính kèm",
+          placeHolder: "Chọn file hoặc thư mục context để đính kèm",
         });
         if (picked) {
           const fileUri = picked.uri;
-          const fileName = fileUri.path.split("/").pop() || fileUri.fsPath;
-          const content = (
-            await vscode.workspace.fs.readFile(fileUri)
-          ).toString();
+          const stat = await vscode.workspace.fs.stat(fileUri);
           const workspaceFolder = vscode.workspace.getWorkspaceFolder(fileUri);
           const relativePath = workspaceFolder
             ? vscode.workspace.asRelativePath(fileUri)
             : fileUri.fsPath;
-          panel.webview.postMessage({
-            type: "fileAttached",
-            fileName,
-            relativePath,
-            content,
-          });
+
+          if (stat.type === vscode.FileType.Directory) {
+            panel.webview.postMessage({
+              type: "folderAttached",
+              folderName: fileUri.path.split("/").pop() || fileUri.fsPath,
+              relativePath,
+              folderUri: fileUri.toString(),
+            });
+          } else {
+            const fileName = fileUri.path.split("/").pop() || fileUri.fsPath;
+            const content = (
+              await vscode.workspace.fs.readFile(fileUri)
+            ).toString();
+            panel.webview.postMessage({
+              type: "fileAttached",
+              fileName,
+              relativePath,
+              content,
+            });
+          }
         }
         break;
       }
+
+      case "filesDropped": {
+        const uris: string[] = message.uris;
+        console.log("Files dropped:", uris);
+
+        for (const uriString of uris) {
+          try {
+            const fileUri = vscode.Uri.parse(uriString);
+            // Lấy thông tin file (stat, workspace folder, relativePath)
+            const stat = await vscode.workspace.fs.stat(fileUri);
+            const workspaceFolder =
+              vscode.workspace.getWorkspaceFolder(fileUri);
+            const relativePath = workspaceFolder
+              ? vscode.workspace.asRelativePath(fileUri)
+              : fileUri.fsPath;
+            const fileName = path.basename(fileUri.fsPath);
+
+            if (stat.type === vscode.FileType.Directory) {
+              // Nếu vô tình kéo thư mục
+              panel.webview.postMessage({
+                type: "folderAttached",
+                folderName: fileName,
+                relativePath,
+                folderUri: fileUri.toString(),
+              });
+            } else {
+              // Nếu là file, đọc nội dung và gửi về như attachFile
+              const bytes = await vscode.workspace.fs.readFile(fileUri);
+              const content = new TextDecoder("utf-8").decode(bytes);
+
+              panel.webview.postMessage({
+                type: "fileAttached",
+                fileName,
+                relativePath,
+                content,
+              });
+            }
+          } catch (err) {
+            console.error(`Không đọc được file: ${uriString}`, err);
+          }
+        }
+        break;
+      }
+
       default:
         // Có thể xử lý các loại message khác ở đây nếu cần
         break;
@@ -120,7 +206,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
     setCurrentPanel(undefined);
   });
   //gửi dữ liệu ban đầu
-  sendCurentFileToPanel(panel, currentCode, currentFileName);
+  sendCurentFileToPanel(panel, currentCode, currentFileName, relativePath);
   //theo dõi thay đổi focus editor
   vscode.window.onDidChangeActiveTextEditor(() => {
     updateEditorContent();

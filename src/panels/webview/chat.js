@@ -2,7 +2,9 @@ const vscode = acquireVsCodeApi();
 const chatBox = document.getElementById("chatBox");
 const questionInput = document.getElementById("question");
 const currentFileDisplay = document.getElementById("currentFile");
-const attachedFilesDisplay = document.getElementById("fileInfo");
+const attachedFilesDisplay = document.getElementById("addFiles");
+const dropZone = document.getElementById("dropZone");
+
 document.getElementById("attachFileBtn").onclick = function () {
   vscode.postMessage({ type: "attachFile" });
 };
@@ -25,7 +27,7 @@ function addAttachFileOnClick(file) {
   console.log("Adding attach file on click:", file);
   let initialID =
     "fileAttach_" +
-    (file.fileName || "") +
+    (file.fileName || file.folderName || "") +
     "_" +
     (file.selectionStart || "") +
     "_" +
@@ -43,30 +45,31 @@ function addAttachFileOnClick(file) {
     `<div class='fileAttach' id=${initialID}>File ${
       file.selectedCode
         ? file.fileName +
-          ` dòng ${file.selectionStart} - ${file.selectionEnd}  `
-        : file.fileName
+          ` line ${file.selectionStart} - ${file.selectionEnd}  `
+        : (file.fileName || "[Folder]" + file.folderName) + " "
     }</div>`
   );
   const fileDiv = document.getElementById(initialID);
   if (fileDiv) {
-    // // Lưu lại giá trị tại thời điểm tạo nút
-    // const fileNameAtClick = file.fileName;
-    // const selectionStartAtClick = file.selectionStart;
-    // const selectionEndAtClick = file.selectionEnd;
-    // const selectionStartCharacterAtClick = file.selectionStartCharacter;
-    // const selectionEndCharacterAtClick = file.electionEndCharacter;
-    // const relativePathAtClick = file.relativePath;
-
+    // Lưu lại giá trị tại thời điểm tạo nút
+    const nameAtClick = file.fileName ? file.fileName : file.folderName;
+    const selectionStartAtClick = file.selectionStart;
+    const selectionEndAtClick = file.selectionEnd;
+    const selectionStartCharacterAtClick = file.selectionStartCharacter;
+    const selectionEndCharacterAtClick = file.selectionEndCharacter;
+    const relativePathAtClick = file.relativePath;
     fileDiv.onclick = () => {
-      console.log("fileDiv clicked", relativePathAtClick);
+      //console.log("fileDiv clicked", relativePathAtClick);
       vscode.postMessage({
         type: "gotoSelection",
-        fileName: file.fileName,
-        selectionStart: file.selectionStart,
-        selectionEnd: file.selectionEnd,
-        selectionStartCharacter: file.selectionStartCharacter,
-        selectionEndCharacter: file.electionEndCharacter,
-        relativePath: file.relativePath,
+        typeAttached: file.type,
+        name: nameAtClick,
+        selectionStart: selectionStartAtClick,
+        selectionEnd: selectionEndAtClick,
+        selectionStartCharacter: selectionStartCharacterAtClick,
+        selectionEndCharacter: selectionEndCharacterAtClick,
+        relativePath: relativePathAtClick,
+        folderUri: file.folderUri || undefined,
       });
     };
   }
@@ -77,21 +80,25 @@ function send() {
   if (!q) return;
   chatBox.insertAdjacentHTML("beforeend", `<div class='q'>🙋‍♂️ Bạn: ${q}</div>`);
 
-  let filesToSend = [...state.attachedFiles];
+  let filesToSend = [];
   if (
-    state.currentFile.fileName &&
-    !filesToSend.some((f) => f.fileName === state.cu && !f.type)
+    !filesToSend.some(
+      (f) =>
+        f.relativePath === state.currentFile.relativePath &&
+        !f.type &&
+        (f.type !== "selection" ||
+          f.selectedCode === state.currentFile.selectedCode)
+    )
   ) {
     filesToSend.push({
       fileName: state.currentFile.fileName,
       code: state.currentFile.code,
-      relativePath:
-        typeof state.currentFile.relativePath !== "undefined"
-          ? state.currentFile.relativePath
-          : "",
+      relativePath: state.currentFile.relativePath,
     });
   }
+  filesToSend = [...filesToSend, ...state.attachedFiles];
   filesToSend.map((file) => {
+    // console.log("Adding attach file on click:", file);
     addAttachFileOnClick(file);
   });
   vscode.postMessage({
@@ -100,7 +107,9 @@ function send() {
     files: filesToSend,
   });
   questionInput.value = "";
-  state.attachedFiles = []; // Reset mảng attachedFiles sau khi gửi
+  state.attachedFiles = [];
+  // Xóa UI fileAttach
+  attachedFilesDisplay.innerHTML = "";
 }
 function extractCodeFromMarkdown(response) {
   // Tách phần code block nếu có
@@ -123,10 +132,10 @@ function extractCodeFromMarkdown(response) {
 
 window.addEventListener("message", (event) => {
   const data = event.data;
-  console.log("Received message from extension:", data);
+  //console.log("Received message from extension:", data);
   switch (data.type) {
     case "update":
-      console.log("Update current file:", data);
+      console.log("Relative path file:", data.relativePath);
       state.currentFile.code = data.code;
       state.currentFile.fileName = data.fileName;
       state.currentFile.selectedCode = data.selectedCode;
@@ -148,7 +157,7 @@ window.addEventListener("message", (event) => {
       chatBox.scrollTop = chatBox.scrollHeight;
       break;
     case "fileAttached": {
-      console.log("File attached:", data);
+      //console.log("File attached:", data);
       if (
         state.attachedFiles.some((f) => f.relativePath === data.relativePath)
       ) {
@@ -191,6 +200,7 @@ window.addEventListener("message", (event) => {
       break;
     }
     case "selectionAttached": {
+      console.log("Selection attached:", state.attachedFiles);
       // Kiểm tra trùng selection (dựa vào file + vị trí dòng)
       if (
         state.attachedFiles.some(
@@ -200,7 +210,6 @@ window.addEventListener("message", (event) => {
             f.selectionEnd === data.selectionEnd
         )
       ) {
-        // alert("Đoạn code này đã được đính kèm!");
         return;
       }
       //console.log("Selection attached:", data);
@@ -214,17 +223,17 @@ window.addEventListener("message", (event) => {
         selectionEndCharacter: data.selectionEndCharacter,
         type: "selection",
       };
-      attachedFiles.push(fileObj);
+      state.attachedFiles.push(fileObj);
 
       // Hiển thị lên giao diện
       const fileDiv = document.createElement("div");
       fileDiv.className = "fileAttach";
-      fileDiv.textContent = `${data.fileName}: dòng ${data.selectionStart} - ${data.selectionEnd}`;
+      fileDiv.textContent = `${data.fileName}: line ${data.selectionStart} - ${data.selectionEnd}`;
       fileDiv.title = data.fileName;
 
       const fileNameSpan = document.createElement("span");
       fileNameSpan.className = "fileName";
-      fileNameSpan.textContent = `${data.fileName} )`;
+      fileNameSpan.textContent = `${data.fileName}`;
       fileDiv.appendChild(fileNameSpan);
 
       const removeBtn = document.createElement("div");
@@ -241,6 +250,47 @@ window.addEventListener("message", (event) => {
       questionInput.focus();
       break;
     }
+    case "folderAttached": {
+      // Kiểm tra trùng folder
+      if (
+        state.attachedFiles.some(
+          (f) => f.relativePath === data.relativePath && f.type === "folder"
+        )
+      ) {
+        return;
+      }
+      console.log("Folder attached:", data);
+      const folderObj = {
+        folderName: data.folderName,
+        relativePath: data.relativePath,
+        folderUri: data.folderUri,
+        type: "folder",
+      };
+      state.attachedFiles.push(folderObj);
+
+      // Xoá các phần tử fileAttach cũ nếu có
+      // Hiển thị lên giao diện
+      const folderDiv = document.createElement("div");
+      folderDiv.className = "fileAttach";
+      folderDiv.textContent = `[Folder] ${data.folderName}`;
+      folderDiv.title = data.folderName;
+
+      const removeBtn = document.createElement("div");
+      removeBtn.className = "remove";
+      removeBtn.title = "Remove folder";
+      removeBtn.textContent = "X";
+      removeBtn.onclick = () => {
+        state.attachedFiles = state.attachedFiles.filter(
+          (f) => f !== folderObj
+        );
+        attachedFilesDisplay.removeChild(folderDiv);
+      };
+      folderDiv.appendChild(removeBtn);
+      attachedFilesDisplay.appendChild(folderDiv);
+
+      questionInput.focus();
+      break;
+    }
   }
 });
 
@@ -248,5 +298,40 @@ questionInput.addEventListener("keydown", function (event) {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
     send();
+  }
+});
+
+// dropzone
+
+dropZone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropZone.style.background = "#f0f0f0";
+});
+
+dropZone.addEventListener("dragleave", (e) => {
+  e.preventDefault();
+  dropZone.style.background = "";
+});
+
+dropZone.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = "#aaa";
+
+  const uriList = e.dataTransfer.getData("text/uri-list");
+  console.log("[Webview] raw uriList:", uriList);
+
+  if (uriList) {
+    const uris = uriList
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+    console.log("[Webview] parsed URIs:", uris);
+    if (uris.length > 0) {
+      vscode.postMessage({
+        type: "filesDropped",
+        uris: uris,
+      });
+      console.log("successfull push");
+    }
   }
 });
