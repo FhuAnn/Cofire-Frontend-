@@ -2,7 +2,9 @@ const vscode = acquireVsCodeApi();
 const chatBox = document.getElementById("chatBox");
 const questionInput = document.getElementById("question");
 const currentFileDisplay = document.getElementById("currentFile");
-const attachedFilesDisplay = document.getElementById("fileInfo");
+const attachedFilesDisplay = document.getElementById("addFiles");
+const dropZone = document.getElementById("dropZone");
+
 document.getElementById("attachFileBtn").onclick = function () {
   vscode.postMessage({ type: "attachFile" });
 };
@@ -57,7 +59,7 @@ function addAttachFileOnClick(file) {
     const selectionEndCharacterAtClick = file.selectionEndCharacter;
     const relativePathAtClick = file.relativePath;
     fileDiv.onclick = () => {
-      console.log("fileDiv clicked", relativePathAtClick);
+      //console.log("fileDiv clicked", relativePathAtClick);
       vscode.postMessage({
         type: "gotoSelection",
         typeAttached: file.type,
@@ -91,10 +93,7 @@ function send() {
     filesToSend.push({
       fileName: state.currentFile.fileName,
       code: state.currentFile.code,
-      relativePath:
-        typeof state.currentFile.relativePath !== "undefined"
-          ? state.currentFile.relativePath
-          : "",
+      relativePath: state.currentFile.relativePath,
     });
   }
   filesToSend = [...filesToSend, ...state.attachedFiles];
@@ -108,11 +107,9 @@ function send() {
     files: filesToSend,
   });
   questionInput.value = "";
-  state.attachedFiles = []; // Reset mảng attachedFiles sau khi gửi
-  // Xóa các phần tử fileAttach trên UI
-  const fileAttachElements =
-    attachedFilesDisplay.querySelectorAll(".fileAttach");
-  fileAttachElements.forEach((el) => el.remove());
+  state.attachedFiles = [];
+  // Xóa UI fileAttach
+  attachedFilesDisplay.innerHTML = "";
 }
 function extractCodeFromMarkdown(response) {
   // Tách phần code block nếu có
@@ -160,7 +157,7 @@ window.addEventListener("message", (event) => {
       chatBox.scrollTop = chatBox.scrollHeight;
       break;
     case "fileAttached": {
-      console.log("File attached:", data);
+      //console.log("File attached:", data);
       if (
         state.attachedFiles.some((f) => f.relativePath === data.relativePath)
       ) {
@@ -301,5 +298,40 @@ questionInput.addEventListener("keydown", function (event) {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
     send();
+  }
+});
+
+// dropzone
+
+dropZone.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropZone.style.background = "#f0f0f0";
+});
+
+dropZone.addEventListener("dragleave", (e) => {
+  e.preventDefault();
+  dropZone.style.background = "";
+});
+
+dropZone.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  dropZone.style.borderColor = "#aaa";
+
+  const uriList = e.dataTransfer.getData("text/uri-list");
+  console.log("[Webview] raw uriList:", uriList);
+
+  if (uriList) {
+    const uris = uriList
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+    console.log("[Webview] parsed URIs:", uris);
+    if (uris.length > 0) {
+      vscode.postMessage({
+        type: "filesDropped",
+        uris: uris,
+      });
+      console.log("successfull push");
+    }
   }
 });

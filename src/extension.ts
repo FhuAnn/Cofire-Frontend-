@@ -9,7 +9,9 @@ import { addFileToChat } from "./chat/UC6-1-addFileToChat";
 import { addSelectionToChat } from "./chat/UC6-2-addSelectionToChat";
 
 export function activate(context: vscode.ExtensionContext) {
+  console.log("starting cofire extension...");
   checkBackendStatusStart();
+
   context.subscriptions.push(
     registerBlockGenCommand(),
     registerExplainCodeCommand(),
@@ -20,6 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("cofire.chatWithAI", () =>
       openAIChatPanel(context)
     ),
+
     vscode.languages.registerInlineCompletionItemProvider(
       { pattern: "**" },
       inlineCompletionProvider

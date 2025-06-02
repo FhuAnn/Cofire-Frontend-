@@ -24,7 +24,7 @@ export async function handleGotoSelection(message: any) {
 
   // Nếu là file thì nhảy tới selection như cũ
   const files = await vscode.workspace.findFiles(relativePath);
-  if (files.length > 0) {
+  if (files.length > 0) { 
     const doc = await vscode.workspace.openTextDocument(files[0]);
     const editor = await vscode.window.showTextDocument(
       doc,

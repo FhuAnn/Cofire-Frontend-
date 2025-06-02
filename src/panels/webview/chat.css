@@ -24,6 +24,12 @@ body {
   gap: 8px;
 }
 
+#addFiles {
+  display: flex;
+
+  gap: 8px;
+}
+
 #chatBox {
   max-height: 350px;
   overflow-y: auto;

@@ -10,7 +10,7 @@ export async function addFileToChat(
   if (!currentPanel) {
     openAIChatPanel(context);
   }
-    const stat = await vscode.workspace.fs.stat(fileUri);
+  const stat = await vscode.workspace.fs.stat(fileUri);
   const workspaceFolder = vscode.workspace.getWorkspaceFolder(fileUri);
   const relativePath = workspaceFolder
     ? vscode.workspace.asRelativePath(fileUri)
