@@ -82,6 +82,7 @@ function send() {
 
   let filesToSend = [];
   if (
+    !state.currentFile &&
     !filesToSend.some(
       (f) =>
         f.relativePath === state.currentFile.relativePath &&
@@ -98,7 +99,6 @@ function send() {
   }
   filesToSend = [...filesToSend, ...state.attachedFiles];
   filesToSend.map((file) => {
-    // console.log("Adding attach file on click:", file);
     addAttachFileOnClick(file);
   });
   vscode.postMessage({
@@ -251,6 +251,7 @@ window.addEventListener("message", (event) => {
       break;
     }
     case "folderAttached": {
+      console.log("Folder attached:", data);
       // Kiểm tra trùng folder
       if (
         state.attachedFiles.some(
@@ -259,7 +260,7 @@ window.addEventListener("message", (event) => {
       ) {
         return;
       }
-      console.log("Folder attached:", data);
+      // console.log("Folder attached:", data);
       const folderObj = {
         folderName: data.folderName,
         relativePath: data.relativePath,
@@ -302,36 +303,41 @@ questionInput.addEventListener("keydown", function (event) {
 });
 
 // dropzone
+let dragCounter = 0;
 
-dropZone.addEventListener("dragover", (e) => {
+window.addEventListener("dragenter", (e) => {
   e.preventDefault();
-  dropZone.style.background = "#f0f0f0";
+  dragCounter++;
+  dropZone.classList.add("active");
+  //console.log("dragenter", dragCounter, dropZone);
 });
-
-dropZone.addEventListener("dragleave", (e) => {
+window.addEventListener("dragleave", (e) => {
   e.preventDefault();
-  dropZone.style.background = "";
+  dragCounter--;
+  if (dragCounter === 0) {
+    dropZone.classList.remove("active");
+  }
+  //console.log("dragleave", dragCounter, dropZone);
 });
-
-dropZone.addEventListener("drop", async (e) => {
+window.addEventListener("dragover", (e) => {
   e.preventDefault();
-  dropZone.style.borderColor = "#aaa";
-
+});
+window.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  dragCounter = 0;
+  dropZone.classList.remove("active");
   const uriList = e.dataTransfer.getData("text/uri-list");
-  console.log("[Webview] raw uriList:", uriList);
-
+  console.log("Dropped URIs:", uriList);
   if (uriList) {
     const uris = uriList
       .split("\n")
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
-    console.log("[Webview] parsed URIs:", uris);
     if (uris.length > 0) {
       vscode.postMessage({
         type: "filesDropped",
         uris: uris,
       });
-      console.log("successfull push");
     }
   }
 });

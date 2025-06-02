@@ -5,6 +5,7 @@ import { getChatHtml } from "../panels/chatPanel";
 import { requestPrompt } from "./function/requestPrompt";
 import { handleGotoSelection } from "./function/goToSelection";
 import { currentPanel, setCurrentPanel } from "../panels/panelState";
+import { chunkArray } from "../utils/chunk";
 
 let currentCode: string = "";
 let currentFileName: string = "";
@@ -96,18 +97,35 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
               const relativePath = workspaceFolder
                 ? vscode.workspace.asRelativePath(fileUri)
                 : fileUri.fsPath;
+              console.log("File to send:", fileName, relativePath, content);
               filesToSend.push({
                 fileName,
                 relativePath,
-                content,
+                code: content,
               });
             }
           } else {
             filesToSend.push(f);
           }
         }
-        // Gửi prompt và filesToSend tới model
-        await requestPrompt({ ...message, files: filesToSend }, panel);
+
+        const batches = chunkArray(filesToSend, 10);
+        let allResponses: string[] = [];
+
+        for (let i = 0; i < batches.length; i++) {
+          const response = await requestPrompt(
+            {
+              ...message,
+              files: batches[i],
+              batchIndex: i + 1,
+              batchTotal: batches.length,
+            },
+            panel
+          );
+          // Có thể thêm delay giữa các batch nếu cần
+          // await new Promise(res => setTimeout(res, 500));
+          allResponses.push(response);
+        }
         break;
       }
       case "attachFile": {
@@ -132,11 +150,14 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
             : fileUri.fsPath;
 
           if (stat.type === vscode.FileType.Directory) {
+            const bytes = await vscode.workspace.fs.readFile(fileUri);
+            const content = new TextDecoder("utf-8").decode(bytes);
             panel.webview.postMessage({
               type: "folderAttached",
               folderName: fileUri.path.split("/").pop() || fileUri.fsPath,
               relativePath,
               folderUri: fileUri.toString(),
+              content,
             });
           } else {
             const fileName = fileUri.path.split("/").pop() || fileUri.fsPath;
