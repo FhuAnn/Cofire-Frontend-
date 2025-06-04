@@ -78,11 +78,12 @@ function addAttachFileOnClick(file) {
 function send() {
   const q = questionInput.value;
   if (!q) return;
-  chatBox.insertAdjacentHTML("beforeend", `<div class='q'>🙋‍♂️ Bạn: ${q}</div>`);
+  chatBox.insertAdjacentHTML("beforeend", `<div class='q'>🙋‍♂️You : ${q}</div>`);
 
   let filesToSend = [];
+  console.log("Current files:", state.currentFile);
   if (
-    !state.currentFile &&
+    state.currentFile &&
     !filesToSend.some(
       (f) =>
         f.relativePath === state.currentFile.relativePath &&
@@ -97,6 +98,8 @@ function send() {
       relativePath: state.currentFile.relativePath,
     });
   }
+  console.log("Thí is not current file:");
+
   filesToSend = [...filesToSend, ...state.attachedFiles];
   filesToSend.map((file) => {
     addAttachFileOnClick(file);

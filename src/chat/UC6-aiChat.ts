@@ -5,7 +5,6 @@ import { getChatHtml } from "../panels/chatPanel";
 import { requestPrompt } from "./function/requestPrompt";
 import { handleGotoSelection } from "./function/goToSelection";
 import { currentPanel, setCurrentPanel } from "../panels/panelState";
-import { chunkArray } from "../utils/chunk";
 
 let currentCode: string = "";
 let currentFileName: string = "";
@@ -79,6 +78,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         await handleGotoSelection(message);
         break;
       case "sendPromptToModel": {
+        console.log("sendPromptToModel", message);
         let filesToSend = [];
         for (const f of message.files) {
           if (f.type === "folder") {
@@ -109,23 +109,27 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
           }
         }
 
-        const batches = chunkArray(filesToSend, 10);
-        let allResponses: string[] = [];
+        // const batches = chunkArray(filesToSend, 10);
+        // let allResponses: string[] = [];
 
-        for (let i = 0; i < batches.length; i++) {
-          const response = await requestPrompt(
-            {
-              ...message,
-              files: batches[i],
-              batchIndex: i + 1,
-              batchTotal: batches.length,
-            },
-            panel
-          );
-          // Có thể thêm delay giữa các batch nếu cần
-          // await new Promise(res => setTimeout(res, 500));
-          allResponses.push(response);
-        }
+        // for (let i = 0; i < batches.length; i++) {
+        //   const response = await requestPrompt(
+        //     {
+        //       ...message,
+        //       files: batches[i],
+        //       batchIndex: i + 1,
+        //       batchTotal: batches.length,
+        //     },
+        //     panel
+        //   );
+        //   // Có thể thêm delay giữa các batch nếu cần
+        //   // await new Promise(res => setTimeout(res, 500));
+        //   allResponses.push(response);
+        // }
+        const messageToSend = {
+          prompt: message.prompt,
+          files: filesToSend,}
+        await requestPrompt(messageToSend, panel);
         break;
       }
       case "attachFile": {
