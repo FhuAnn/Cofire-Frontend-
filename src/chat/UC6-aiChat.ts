@@ -78,6 +78,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         await handleGotoSelection(message);
         break;
       case "sendPromptToModel": {
+        console.log("sendPromptToModel", message);
         let filesToSend = [];
         for (const f of message.files) {
           if (f.type === "folder") {
@@ -96,18 +97,39 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
               const relativePath = workspaceFolder
                 ? vscode.workspace.asRelativePath(fileUri)
                 : fileUri.fsPath;
+              console.log("File to send:", fileName, relativePath, content);
               filesToSend.push({
                 fileName,
                 relativePath,
-                content,
+                code: content,
               });
             }
           } else {
             filesToSend.push(f);
           }
         }
-        // Gửi prompt và filesToSend tới model
-        await requestPrompt({ ...message, files: filesToSend }, panel);
+
+        // const batches = chunkArray(filesToSend, 10);
+        // let allResponses: string[] = [];
+
+        // for (let i = 0; i < batches.length; i++) {
+        //   const response = await requestPrompt(
+        //     {
+        //       ...message,
+        //       files: batches[i],
+        //       batchIndex: i + 1,
+        //       batchTotal: batches.length,
+        //     },
+        //     panel
+        //   );
+        //   // Có thể thêm delay giữa các batch nếu cần
+        //   // await new Promise(res => setTimeout(res, 500));
+        //   allResponses.push(response);
+        // }
+        const messageToSend = {
+          prompt: message.prompt,
+          files: filesToSend,}
+        await requestPrompt(messageToSend, panel);
         break;
       }
       case "attachFile": {
@@ -132,11 +154,14 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
             : fileUri.fsPath;
 
           if (stat.type === vscode.FileType.Directory) {
+            const bytes = await vscode.workspace.fs.readFile(fileUri);
+            const content = new TextDecoder("utf-8").decode(bytes);
             panel.webview.postMessage({
               type: "folderAttached",
               folderName: fileUri.path.split("/").pop() || fileUri.fsPath,
               relativePath,
               folderUri: fileUri.toString(),
+              content,
             });
           } else {
             const fileName = fileUri.path.split("/").pop() || fileUri.fsPath;

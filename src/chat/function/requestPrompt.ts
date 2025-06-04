@@ -1,6 +1,9 @@
 import { callChatAI } from "../../utils/apis";
 import * as vscode from "vscode";
-export async function requestPrompt(message: any, panel: vscode.WebviewPanel) {
+export async function requestPrompt(
+  message: any,
+  panel: vscode.WebviewPanel
+): Promise<string> {
   const { prompt, files } = message;
   console.log("Requesting prompt with message:", message);
   let filesSection = "";
@@ -36,7 +39,9 @@ Reply directly to the user as if in a chat. Do not restate the prompt.
   try {
     const aiAnswer = await callChatAI(fullPrompt);
     panel.webview.postMessage({ type: "reply", reply: aiAnswer });
+    return aiAnswer;
   } catch (err: any) {
     panel.webview.postMessage({ reply: "Lỗi khi gọi API" });
+    return "Lỗi khi gọi API";
   }
 }
