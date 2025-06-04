@@ -1,11 +1,11 @@
+// ====== Khai báo biến và DOM ======
 const vscode = acquireVsCodeApi();
 const chatBox = document.getElementById("chatBox");
 const questionInput = document.getElementById("question");
 const currentFileDisplay = document.getElementById("currentFile");
 const attachedFilesDisplay = document.getElementById("fileInfo");
-document.getElementById("attachFileBtn").onclick = function () {
-  vscode.postMessage({ type: "attachFile" });
-};
+
+// ====== State lưu trữ thông tin hiện tại ======
 const state = {
   currentFile: {
     code: "",
@@ -17,12 +17,17 @@ const state = {
     selectionEndCharacter: 0,
     relativePath: "",
   },
+  isLoading: false,
   attachedFiles: [],
 };
 
-// Hàm gán sự kiện onClick cho file đính kèm (chuyển tới selection nếu có)
-function addAttachFileOnClick(file) {
-  console.log("Adding attach file on click:", file);
+// ====== Sự kiện nút đính kèm file ======
+document.getElementById("attachFileBtn").onclick = function () {
+  vscode.postMessage({ type: "attachFile" });
+};
+
+// ====== Hàm thêm file đính kèm vào giao diện và gán sự kiện click ======
+function addAttachFileOnClick(file, containerId) {
   let initialID =
     "fileAttach_" +
     (file.fileName || "") +
@@ -38,49 +43,72 @@ function addAttachFileOnClick(file) {
     Date.now() +
     "_" +
     Math.floor(Math.random() * 10000);
-  chatBox.insertAdjacentHTML(
-    "beforeend",
-    `<div class='fileAttach' id=${initialID}>File ${
-      file.selectedCode
-        ? file.fileName +
-          ` dòng ${file.selectionStart} - ${file.selectionEnd}  `
-        : file.fileName
-    }</div>`
-  );
-  const fileDiv = document.getElementById(initialID);
-  if (fileDiv) {
-    // // Lưu lại giá trị tại thời điểm tạo nút
-    // const fileNameAtClick = file.fileName;
-    // const selectionStartAtClick = file.selectionStart;
-    // const selectionEndAtClick = file.selectionEnd;
-    // const selectionStartCharacterAtClick = file.selectionStartCharacter;
-    // const selectionEndCharacterAtClick = file.electionEndCharacter;
-    // const relativePathAtClick = file.relativePath;
 
-    fileDiv.onclick = () => {
-      console.log("fileDiv clicked", relativePathAtClick);
-      vscode.postMessage({
-        type: "gotoSelection",
-        fileName: file.fileName,
-        selectionStart: file.selectionStart,
-        selectionEnd: file.selectionEnd,
-        selectionStartCharacter: file.selectionStartCharacter,
-        selectionEndCharacter: file.electionEndCharacter,
-        relativePath: file.relativePath,
-      });
-    };
+  const fileDiv = document.createElement("div");
+  fileDiv.className = "fileAttach";
+  fileDiv.id = initialID;
+  fileDiv.textContent = file.selectedCode
+    ? `${file.fileName}: dòng ${file.selectionStart} - ${file.selectionEnd}`
+    : file.fileName;
+
+  // Khi click vào file đính kèm sẽ gửi thông tin selection về extension
+  fileDiv.onclick = () => {
+    vscode.postMessage({
+      type: "gotoSelection",
+      fileName: file.fileName,
+      selectionStart: file.selectionStart,
+      selectionEnd: file.selectionEnd,
+      selectionStartCharacter: file.selectionStartCharacter,
+      selectionEndCharacter: file.selectionEndCharacter,
+      relativePath: file.relativePath,
+    });
+  };
+
+  const parent = document.querySelector(`#${containerId} .attachedFiles`);
+  if (parent) {
+    parent.appendChild(fileDiv);
   }
 }
 
+// ====== Hàm gửi câu hỏi lên extension ======
 function send() {
+  const messageId = `msg_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
   const q = questionInput.value;
-  if (!q) return;
-  chatBox.insertAdjacentHTML("beforeend", `<div class='q'>🙋‍♂️ Bạn: ${q}</div>`);
+  if (!q) {
+    return;
+  }
 
+  // Hiển thị câu hỏi lên chatBox
+  chatBox.insertAdjacentHTML(
+    "beforeend",
+    `
+  <div class="messageBlock" id="${messageId}" tabindex="0">
+    <div class="q">
+    🙋‍♂️ Bạn:<br>
+     ${q}
+     </div>
+    <div class="attachedFiles"></div>
+  </div>`
+  );
+
+  // Hiển thị block AI loading
+  const loadingId = `ai_loading_${Date.now()}`;
+  chatBox.insertAdjacentHTML(
+    "beforeend",
+    `
+    <div class="messageBlock ai" id="${loadingId}" tabindex="0">
+      <div class="robot">🤖 AI: <i>đang xử lý...</i></div>
+    </div>
+  `
+  );
+
+  // Chuẩn bị danh sách file gửi lên extension
   let filesToSend = [...state.attachedFiles];
   if (
     state.currentFile.fileName &&
-    !filesToSend.some((f) => f.fileName === state.cu && !f.type)
+    !filesToSend.some(
+      (f) => f.fileName === state.currentFile.fileName && !f.type
+    )
   ) {
     filesToSend.push({
       fileName: state.currentFile.fileName,
@@ -91,42 +119,30 @@ function send() {
           : "",
     });
   }
+  // Hiển thị file đính kèm lên giao diện
   filesToSend.map((file) => {
-    addAttachFileOnClick(file);
+    addAttachFileOnClick(file, messageId);
   });
+
+  // Gửi prompt và file lên extension
   vscode.postMessage({
     type: "sendPromptToModel",
     prompt: q,
     files: filesToSend,
   });
+
+  // Reset input và danh sách file đính kèm
   questionInput.value = "";
-  state.attachedFiles = []; // Reset mảng attachedFiles sau khi gửi
-}
-function extractCodeFromMarkdown(response) {
-  // Tách phần code block nếu có
-  const codeBlockRegex = /```(?:[\w-]*)?\n([\s\S]*?)```/gm;
-  let formatted = response.replace(codeBlockRegex, (match, p1) => {
-    return `<pre><code>${p1.trim()}</code></pre>`;
-  });
-
-  // Thay dấu * đầu dòng thành danh sách HTML
-  if (formatted.includes("* ")) {
-    formatted = formatted.replace(/\* (.+)/g, "<li>$1</li>");
-    formatted = formatted.replace(/(<li>[\s\S]+<\/li>)/g, "<ul>$1</ul>");
-  }
-
-  // Loại bỏ dấu ``` còn dư
-  formatted = formatted.replace(/```/g, "");
-
-  return formatted.trim();
+  state.attachedFiles = [];
 }
 
+// ====== Lắng nghe message từ extension gửi về ======
 window.addEventListener("message", (event) => {
   const data = event.data;
   console.log("Received message from extension:", data);
   switch (data.type) {
+    // Cập nhật thông tin file hiện tại
     case "update":
-      console.log("Update current file:", data);
       state.currentFile.code = data.code;
       state.currentFile.fileName = data.fileName;
       state.currentFile.selectedCode = data.selectedCode;
@@ -135,20 +151,28 @@ window.addEventListener("message", (event) => {
       state.currentFile.selectionStartCharacter = data.selectionStartCharacter;
       state.currentFile.selectionEndCharacter = data.selectionEndCharacter;
       state.currentFile.relativePath = data.relativePath;
-      if (!state.currentFile.selectedCode)
+      if (!state.currentFile.selectedCode) {
         currentFileDisplay.textContent = state.currentFile.fileName;
-      else
+      } else {
         currentFileDisplay.textContent = `${state.currentFile.fileName}: line ${state.currentFile.selectionStart} - ${state.currentFile.selectionEnd}`;
+      }
       break;
+
+    // Nhận phản hồi từ AI và hiển thị lên chatBox
     case "reply":
-      chatBox.insertAdjacentHTML(
-        "beforeend",
-        `<div class='robot'>🤖 AI: ${extractCodeFromMarkdown(data.reply)}</div>`
-      );
+      const htmlContent = marked.parse(data.reply);
+      const aiBlock = document.getElementById(data.messageId);
+      if (aiBlock) {
+        aiBlock.innerHTML = `<div class='robot'>🤖 AI:
+      <div class="markdown-content">${htmlContent}</div>
+    </div>`;
+      }
+      addCopyButtonsToCodeBlocks();
       chatBox.scrollTop = chatBox.scrollHeight;
       break;
+
+    // Khi file được đính kèm (toàn bộ file)
     case "fileAttached": {
-      console.log("File attached:", data);
       if (
         state.attachedFiles.some((f) => f.relativePath === data.relativePath)
       ) {
@@ -160,8 +184,8 @@ window.addEventListener("message", (event) => {
         code: data.content,
       };
       state.attachedFiles.push(fileObj);
-      //console.log("Attached files:", attachedFiles);
-      // Tạo phần tử fileAttach
+
+      // Hiển thị file đính kèm lên giao diện
       const fileDiv = document.createElement("div");
       fileDiv.className = "fileAttach";
       fileDiv.title = data.fileName;
@@ -171,25 +195,24 @@ window.addEventListener("message", (event) => {
       fileNameSpan.textContent = `${data.fileName}`;
       fileDiv.appendChild(fileNameSpan);
 
-      // Tạo nút remove
+      // Nút xoá file đính kèm
       const removeBtn = document.createElement("div");
       removeBtn.className = "remove";
       removeBtn.title = "Remove file";
       removeBtn.textContent = "X";
-
-      // Gán sự kiện xoá
       removeBtn.onclick = () => {
-        // Xoá khỏi mảng attachedFiles
         state.attachedFiles = state.attachedFiles.filter((f) => f !== fileObj);
-        // Xoá khỏi giao diện
         attachedFilesDisplay.removeChild(fileDiv);
       };
       fileDiv.appendChild(removeBtn);
       attachedFilesDisplay.appendChild(fileDiv);
-      // Focus vào input sau khi add file
+
+      // Focus lại vào input
       questionInput.focus();
       break;
     }
+
+    // Khi đính kèm đoạn selection trong file
     case "selectionAttached": {
       // Kiểm tra trùng selection (dựa vào file + vị trí dòng)
       if (
@@ -200,10 +223,8 @@ window.addEventListener("message", (event) => {
             f.selectionEnd === data.selectionEnd
         )
       ) {
-        // alert("Đoạn code này đã được đính kèm!");
         return;
       }
-      //console.log("Selection attached:", data);
       const fileObj = {
         fileName: data.fileName,
         relativePath: data.relativePath,
@@ -227,6 +248,7 @@ window.addEventListener("message", (event) => {
       fileNameSpan.textContent = `${data.fileName} )`;
       fileDiv.appendChild(fileNameSpan);
 
+      // Nút xoá selection
       const removeBtn = document.createElement("div");
       removeBtn.className = "remove";
       removeBtn.title = "Remove selection";
@@ -244,9 +266,41 @@ window.addEventListener("message", (event) => {
   }
 });
 
+// ====== Sự kiện Enter để gửi câu hỏi ======
 questionInput.addEventListener("keydown", function (event) {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
     send();
   }
 });
+
+// insert copy vào pre
+
+function addCopyButtonsToCodeBlocks() {
+  const container = document.querySelector('.markdown-content');
+  if (!container) {return;}
+
+  // Xóa nút copy cũ (nếu có)
+  container.querySelectorAll('.copy-btn').forEach(btn => btn.remove());
+
+  container.querySelectorAll('pre').forEach(pre => {
+    const code = pre.querySelector('code');
+    if (!code) {return;}
+
+    // Tạo nút
+    const button = document.createElement('button');
+    button.className = 'copy-btn';
+    button.innerText = '📋 Copy';
+
+    // Xử lý sự kiện copy
+    button.addEventListener('click', () => {
+      navigator.clipboard.writeText(code.innerText).then(() => {
+        button.innerText = '✅ Copied!';
+        setTimeout(() => (button.innerText = '📋 Copy'), 2000);
+      });
+    });
+
+    pre.style.position = 'relative';
+    pre.appendChild(button);
+  });
+}
