@@ -386,6 +386,17 @@ window.addEventListener("drop", async (e) => {
   }
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const sendBtn = document.getElementById("sendBtn");
+  if (sendBtn) {
+    sendBtn.addEventListener("click", () => {
+      send();
+      updateEmptyText();
+    });
+  }
+});
+
+
 function updateEmptyText() {
   const chatBox = document.getElementById("chatBox");
   const emptyText = document.getElementById("emptyText");
