@@ -5,6 +5,7 @@ import { getChatHtml } from "../panels/chatPanel";
 import { requestPrompt } from "./function/requestPrompt";
 import { handleGotoSelection } from "./function/goToSelection";
 import { currentPanel, setCurrentPanel } from "../panels/panelState";
+import { ChatMessage, FileToSend } from "../types";
 
 let currentCode: string = "";
 let currentFileName: string = "";
@@ -79,7 +80,8 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         break;
       case "sendPromptToModel": {
         console.log("sendPromptToModel", message);
-        let filesToSend = [];
+        let filesToSend: FileToSend[] = [];
+
         for (const f of message.files) {
           if (f.type === "folder") {
             const folderUri = vscode.Uri.parse(f.folderUri);
@@ -108,28 +110,14 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
             filesToSend.push(f);
           }
         }
-
-        // const batches = chunkArray(filesToSend, 10);
-        // let allResponses: string[] = [];
-
-        // for (let i = 0; i < batches.length; i++) {
-        //   const response = await requestPrompt(
-        //     {
-        //       ...message,
-        //       files: batches[i],
-        //       batchIndex: i + 1,
-        //       batchTotal: batches.length,
-        //     },
-        //     panel
-        //   );
-        //   // Có thể thêm delay giữa các batch nếu cần
-        //   // await new Promise(res => setTimeout(res, 500));
-        //   allResponses.push(response);
-        // }
-        const messageToSend = {
-          prompt: message.prompt,
-          files: filesToSend,}
-        await requestPrompt(messageToSend, panel);
+        console.log("Đoạn chat hiện tại chuẩn bị", filesToSend);
+        // Lấy nội dung của file hiện tại
+        const newChatToSend: ChatMessage = {
+          role: "user",
+          content: message.prompt,
+          attachedFiles: filesToSend,
+        };
+        await requestPrompt(newChatToSend, panel);
         break;
       }
       case "attachFile": {
@@ -178,7 +166,6 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         }
         break;
       }
-
       case "filesDropped": {
         const uris: string[] = message.uris;
         console.log("Files dropped:", uris);
@@ -221,9 +208,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         }
         break;
       }
-
       default:
-        // Có thể xử lý các loại message khác ở đây nếu cần
         break;
     }
   });
@@ -240,6 +225,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
     updateEditorContent();
   });
 }
+
 function sendCurentFileToPanel(
   panel: vscode.WebviewPanel,
   code: string,
@@ -251,7 +237,8 @@ function sendCurentFileToPanel(
   selectionEndCharacter?: number,
   relativePath?: string
 ) {
-  // console.log("changeee", fileName, selectionStart);
+  //console.log("changeee", fileName, relativePath, selectionStart);
+
   panel.webview.postMessage({
     type: "update",
     code,

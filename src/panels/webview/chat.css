@@ -228,3 +228,7 @@ code {
 #dropZone.active {
   display: flex;
 }
+
+#current {
+  display: flex;
+}

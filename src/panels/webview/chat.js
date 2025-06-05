@@ -1,10 +1,11 @@
 const vscode = acquireVsCodeApi();
 const chatBox = document.getElementById("chatBox");
 const questionInput = document.getElementById("question");
+const micBtn = document.getElementById("micBtn");
 const currentFileDisplay = document.getElementById("currentFile");
+const currentFileCard = document.getElementById("currentFileCard");
 const attachedFilesDisplay = document.getElementById("addFiles");
 const dropZone = document.getElementById("dropZone");
-
 document.getElementById("attachFileBtn").onclick = function () {
   vscode.postMessage({ type: "attachFile" });
 };
@@ -83,7 +84,7 @@ function send() {
   let filesToSend = [];
   console.log("Current files:", state.currentFile);
   if (
-    state.currentFile &&
+    state.currentFile.relativePath &&
     !filesToSend.some(
       (f) =>
         f.relativePath === state.currentFile.relativePath &&
@@ -92,6 +93,7 @@ function send() {
           f.selectedCode === state.currentFile.selectedCode)
     )
   ) {
+    console.log("Current file is not in filesToSend", state.currentFile);
     filesToSend.push({
       fileName: state.currentFile.fileName,
       code: state.currentFile.code,
@@ -138,6 +140,10 @@ window.addEventListener("message", (event) => {
   //console.log("Received message from extension:", data);
   switch (data.type) {
     case "update":
+      if (!data.relativePath) {
+        currentFileCard.style.display = "none";
+        return;
+      } else currentFileCard.style.display = "flex";
       console.log("Relative path file:", data.relativePath);
       state.currentFile.code = data.code;
       state.currentFile.fileName = data.fileName;

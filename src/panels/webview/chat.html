@@ -11,15 +11,20 @@
       <section id="chatBox"></section>
       <section id="fileInfo">
         <button id="attachFileBtn">Add context file</button>
-        <span style="color: rgb(80, 80, 80)">📄File current:</span>
-        <div class="fileCard" id="currentFileTag">
-          <span id="currentFile">...</span>
-          <span class="subtext">current</span>
+
+        <div id="currentFileCard">
+          <span style="color: rgb(80, 80, 80)">📄File current:</span>
+          <div class="fileCard" id="currentFileTag">
+            <span id="currentFile">...</span>
+            <span class="subtext">current</span>
+          </div>
         </div>
+
         <div id="addFiles"></div>
       </section>
 
       <section id="inputContainer">
+        <button id="micBtn" title="Nhấn để nói">🎤</button>
         <textarea
           id="question"
           placeholder="Nhập câu hỏi..."
