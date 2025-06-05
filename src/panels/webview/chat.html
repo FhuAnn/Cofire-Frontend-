@@ -4,11 +4,37 @@
     <meta charset="UTF-8" />
     <title>Trợ lý mã</title>
     <link href="{{styleUri}}" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Highlight.js CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/github.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Highlight.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/common.min.js"></script>
   </head>
   <body>
     <main id="container">
       <section id="dropZone">Kéo và thả file vào đây để đính kèm</section>
-      <section id="chatBox"></section>
+      <section id="chatWrapper">
+        <section id="chatBox">
+          <div
+            id="emptyText"
+            style="
+              color: #999;
+              font-style: italic;
+              padding: 20px;
+              text-align: center;
+            "
+          >
+            Cofire - AI assistant
+          </div>
+        </section>
+      </section>
       <section id="fileInfo">
         <button id="attachFileBtn">Add context file</button>
         <span style="color: rgb(80, 80, 80)">📄File current:</span>
@@ -26,8 +52,10 @@
           autocomplete="off"
           rows="1"
         ></textarea>
-        <button id="sendBtn" onclick="send()">Gửi</button>
       </section>
+      <div id="sendSection">
+        <button id="sendBtn" onclick="send()">Gửi</button>
+      </div>
     </main>
 
     <script src="{{scriptUri}}"></script>

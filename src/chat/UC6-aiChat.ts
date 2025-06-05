@@ -128,7 +128,9 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         // }
         const messageToSend = {
           prompt: message.prompt,
-          files: filesToSend,}
+          files: filesToSend,
+          loadingId: message.loadingId  
+        }
         await requestPrompt(messageToSend, panel);
         break;
       }
