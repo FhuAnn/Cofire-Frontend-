@@ -14,22 +14,23 @@ marked.setOptions({
 const renderer = new marked.Renderer();
 
 renderer.code = (code, infostring) => {
-  const lang = (infostring || '').toLowerCase();
-  const language = lang || (hljs.highlightAuto(code).language || 'plaintext');
+  const lang = (infostring || "").toLowerCase();
+  const language = lang || hljs.highlightAuto(code).language || "plaintext";
   const highlightedCode = hljs.highlight(code, { language }).value;
 
-  const langLabel = language !== 'plaintext' 
-    ? `<div class="lang-label">${language}</div>` 
-    : '';
+  const langLabel =
+    language !== "plaintext" ? `<div class="lang-label">${language}</div>` : "";
 
   const copyBtn = `<button class="copy-btn" aria-label="Sao chép code" title="Sao chép code">Sao chép</button>`;
 
   return `
-    <pre class="hljs language-${language}">
-      ${langLabel}
-      ${copyBtn}
-      <code>${highlightedCode}</code>
-    </pre>
+    <div class="code-wrapper">
+      <pre class="hljs language-${language}">
+        <code>${highlightedCode}</code>
+      </pre>
+        ${langLabel}
+        ${copyBtn}
+    </div>
   `;
 };
 
@@ -39,23 +40,24 @@ function renderMarkdown(mdText, container) {
 
   container.innerHTML = marked.parse(mdText, { renderer });
 
-  // Thêm event cho nút copy
-  container.querySelectorAll('.copy-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const pre = btn.closest('pre');
-    const codeEl = pre?.querySelector('code');
-    if (!codeEl) return;
+  container.querySelectorAll(".copy-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const wrapper = btn.closest(".code-wrapper");
+      const codeEl = wrapper?.querySelector("code");
+      if (!codeEl) return;
 
-    navigator.clipboard.writeText(codeEl.innerText)
-      .then(() => {
-        btn.textContent = 'Đã sao chép!';
-        setTimeout(() => btn.textContent = 'Sao chép', 1500);
-      })
-      .catch(() => {
-        btn.textContent = 'Lỗi!';
-      });
+      navigator.clipboard
+        .writeText(codeEl.innerText)
+        .then(() => {
+          btn.textContent = "Đã sao chép!";
+          setTimeout(() => (btn.textContent = "Sao chép"), 1500);
+        })
+        .catch(() => {
+          btn.textContent = "Lỗi!";
+          setTimeout(() => (btn.textContent = "Sao chép"), 1500);
+        });
+    });
   });
-});
 }
 
 

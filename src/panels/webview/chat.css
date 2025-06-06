@@ -232,6 +232,7 @@ button {
 .remove:hover {
   background-color: red;
   color: black;
+  cursor: pointer;
 }
 
 .fileComponent {
@@ -319,68 +320,14 @@ button {
   margin-bottom: 0.3rem;
 }
 
-/* Code blocks */
-.markdown-content pre {
-  position: relative; 
-  background: var(--code-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1.5rem 1rem 1rem 1rem;
-  margin: 1rem 0;
-  overflow-x: auto;
-  font-family: 'Fira Code', monospace;
-  font-size: 0.9rem;
-  color: #c9d1d9;
-}
-
-.markdown-content pre code {
-  background: transparent !important;
-  color: inherit;
-  font-family: 'Fira Code', monospace;
-  font-size: 0.9rem;
-}
-
 /* Inline code */
 .markdown-content code:not(pre code) {
   background: #f6f8fa;
   color: #0366d6;
   padding: 0.15em 0.3em;
   border-radius: 4px;
-  font-family: 'Fira Code', monospace;
+  font-family: "Fira Code", monospace;
   font-size: 0.85rem;
-}
-
-/* Code block controls */
-.markdown-content pre .copy-btn,
-.markdown-content pre .lang-label {
-  position: absolute;
-  top: 8px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  user-select: none;
-  z-index: 10;
-}
-
-.markdown-content pre .copy-btn {
-  right: 8px;
-  background: #e1e4e8;
-  border: 1px solid var(--border-color);
-  color: var(--text-dark);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.markdown-content pre .copy-btn:hover {
-  background-color: #0366d6;
-  color: #fff;
-}
-
-.markdown-content pre .lang-label {
-  left: 8px;
-  background: #0366d6;
-  color: #fff;
-  font-weight: 600;
 }
 
 /* Blockquotes */
@@ -390,6 +337,73 @@ button {
   color: #6a737d;
   margin: 1rem 0;
   font-style: italic;
+}
+
+/* ================= CODE BLOCKS ================= */
+.code-wrapper {
+  position: relative;
+  margin: 1rem 0;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--code-bg);
+  padding-top: 2.5rem; /* Chừa chỗ cho label và nút */
+  overflow: visible;
+}
+
+/* Pre bên trong wrapper chỉ scroll ngang, không sticky */
+.code-wrapper pre {
+  overflow-x: auto;
+  margin: 0;
+  padding: 1rem;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9rem;
+  color: #c9d1d9;
+  white-space: pre;
+}
+
+/* Code block */
+.code-wrapper pre code {
+  background: transparent !important;
+  color: inherit;
+  font-family: "Fira Code", monospace;
+  font-size: 0.9rem;
+}
+
+/* Label ngôn ngữ */
+.lang-label {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #0366d6;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  user-select: none;
+  z-index: 20;
+}
+
+/* Nút sao chép */
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #e1e4e8;
+  border: 1px solid var(--border-color);
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  z-index: 20;
+  transition: background-color 0.2s ease;
+}
+
+.copy-btn:hover {
+  background-color: #0366d6;
+  color: white;
 }
 
 /* ========== 9. DROPDOWN MENU ========== */
