@@ -6,6 +6,59 @@ const currentFileDisplay = document.getElementById("currentFile");
 const attachedFilesDisplay = document.getElementById("addFiles");
 const dropZone = document.getElementById("dropZone");
 
+marked.setOptions({
+  langPrefix: "hljs language-", // class cho code block
+});
+
+// Tạo renderer tùy chỉnh
+const renderer = new marked.Renderer();
+
+renderer.code = (code, infostring) => {
+  const lang = (infostring || '').toLowerCase();
+  const language = lang || (hljs.highlightAuto(code).language || 'plaintext');
+  const highlightedCode = hljs.highlight(code, { language }).value;
+
+  const langLabel = language !== 'plaintext' 
+    ? `<div class="lang-label">${language}</div>` 
+    : '';
+
+  const copyBtn = `<button class="copy-btn" aria-label="Sao chép code" title="Sao chép code">Sao chép</button>`;
+
+  return `
+    <pre class="hljs language-${language}">
+      ${langLabel}
+      ${copyBtn}
+      <code>${highlightedCode}</code>
+    </pre>
+  `;
+};
+
+// Hàm render markdown
+function renderMarkdown(mdText, container) {
+  if (!container) return;
+
+  container.innerHTML = marked.parse(mdText, { renderer });
+
+  // Thêm event cho nút copy
+  container.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const pre = btn.closest('pre');
+    const codeEl = pre?.querySelector('code');
+    if (!codeEl) return;
+
+    navigator.clipboard.writeText(codeEl.innerText)
+      .then(() => {
+        btn.textContent = 'Đã sao chép!';
+        setTimeout(() => btn.textContent = 'Sao chép', 1500);
+      })
+      .catch(() => {
+        btn.textContent = 'Lỗi!';
+      });
+  });
+});
+}
+
+
 const state = {
   currentFile: {
     code: "",
@@ -47,14 +100,25 @@ function addAttachFileOnClick(file, containerId) {
   div.className = "fileAttach";
   div.id = initialID;
 
-  let content = "File ";
+  let content = "";
   if (file.selectedCode) {
-    content += `${file.fileName} line ${file.selectionStart} - ${file.selectionEnd}`;
+    content = `${file.fileName} line ${file.selectionStart} - ${file.selectionEnd}`;
   } else {
-    content += file.fileName || "[Folder]" + file.folderName;
+    content = file.fileName || file.folderName;
   }
 
-  div.textContent = content + " ";
+  // Get icon based on file or folder name
+  const iconSrc = getIconForFile(file.fileName || file.folderName);
+  const iconImg = document.createElement("img");
+  iconImg.src = iconSrc;
+  iconImg.className = "file-icon";
+  iconImg.style.width = "16px"; // Adjust size as needed
+  iconImg.style.marginRight = "5px"; // Space between icon and text
+  div.appendChild(iconImg);
+
+  const textSpan = document.createElement("span");
+  textSpan.textContent = content + " ";
+  div.appendChild(textSpan);
 
   // Gán onclick trực tiếp cho div vừa tạo
   const nameAtClick = file.fileName ? file.fileName : file.folderName;
@@ -82,7 +146,6 @@ function addAttachFileOnClick(file, containerId) {
     parent.appendChild(div);
   }
 }
-
 // ====== Hàm gửi câu hỏi lên extension ======
 function send() {
   const messageId = `msg_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
@@ -172,16 +235,32 @@ window.addEventListener("message", (event) => {
       state.currentFile.selectionStartCharacter = data.selectionStartCharacter;
       state.currentFile.selectionEndCharacter = data.selectionEndCharacter;
       state.currentFile.relativePath = data.relativePath;
+      // Clear current content
+      currentFileDisplay.innerHTML = "";
+
+      // Create icon element
+      const iconSrc = getIconForFile(state.currentFile.fileName);
+      const iconImg = document.createElement("img");
+      iconImg.src = iconSrc;
+      iconImg.className = "file-icon";
+      iconImg.style.width = "16px";
+      iconImg.style.marginRight = "5px";
+      currentFileDisplay.appendChild(iconImg);
+
+      // Create text span
+      const textSpan = document.createElement("span");
       if (!state.currentFile.selectedCode) {
-        currentFileDisplay.textContent = state.currentFile.fileName;
+        textSpan.textContent = state.currentFile.fileName;
       } else {
-        currentFileDisplay.textContent = `${state.currentFile.fileName}: line ${state.currentFile.selectionStart} - ${state.currentFile.selectionEnd}`;
+        textSpan.textContent = `${state.currentFile.fileName}: line ${state.currentFile.selectionStart} - ${state.currentFile.selectionEnd}`;
       }
+      currentFileDisplay.appendChild(textSpan);
       break;
 
     // Nhận phản hồi từ AI và hiển thị lên chatBox
     case "reply":
-      const htmlContent = marked.parse(data.reply);
+      const htmlContent = marked.parse(data.reply, { renderer });
+      console.log(htmlContent);
       const aiBlock = document.getElementById(data.loadingId);
       if (!aiBlock) {
         return;
@@ -192,9 +271,17 @@ window.addEventListener("message", (event) => {
       }
       robotDiv.classList.remove("loading");
 
-      robotDiv.innerHTML = `🤖 AI:
-      <div class="markdown-content">${htmlContent}</div>
-    `;
+      // Tạo div markdown-content mới
+      const mdContainer = document.createElement("div");
+      mdContainer.className = "markdown-content";
+
+      // Render markdown vào div này
+      renderMarkdown(data.reply, mdContainer);
+
+      // Gán innerHTML cho robotDiv với phần header + markdown-content
+      robotDiv.innerHTML = `🤖 AI:`;
+      robotDiv.appendChild(mdContainer);
+
       chatBox.scrollTop = chatBox.scrollHeight;
       break;
 
@@ -217,6 +304,15 @@ window.addEventListener("message", (event) => {
       const fileDiv = document.createElement("div");
       fileDiv.className = "fileAttach";
       fileDiv.title = data.fileName;
+
+      // Add icon
+      const iconSrc = getIconForFile(data.fileName);
+      const iconImg = document.createElement("img");
+      iconImg.src = iconSrc;
+      iconImg.className = "file-icon";
+      iconImg.style.width = "16px";
+      iconImg.style.marginRight = "5px";
+      fileDiv.appendChild(iconImg);
 
       const fileNameSpan = document.createElement("span");
       fileNameSpan.className = "fileName";
@@ -272,6 +368,15 @@ window.addEventListener("message", (event) => {
       fileDiv.textContent = `${data.fileName}: line ${data.selectionStart} - ${data.selectionEnd}`;
       fileDiv.title = data.fileName;
 
+      // Add icon
+      const iconSrc = getIconForFile(data.fileName);
+      const iconImg = document.createElement("img");
+      iconImg.src = iconSrc;
+      iconImg.className = "file-icon";
+      iconImg.style.width = "16px";
+      iconImg.style.marginRight = "5px";
+      fileDiv.appendChild(iconImg);
+
       const fileNameSpan = document.createElement("span");
       fileNameSpan.className = "fileName";
       fileNameSpan.textContent = `${data.fileName}`;
@@ -315,8 +420,21 @@ window.addEventListener("message", (event) => {
       // Hiển thị lên giao diện
       const folderDiv = document.createElement("div");
       folderDiv.className = "fileAttach";
-      folderDiv.textContent = `[Folder] ${data.folderName}`;
       folderDiv.title = data.folderName;
+
+      // Add icon
+      const iconSrc = getIconForFile(data.folderName);
+      const iconImg = document.createElement("img");
+      iconImg.src = iconSrc;
+      iconImg.className = "file-icon";
+      iconImg.style.width = "16px";
+      iconImg.style.marginRight = "5px";
+      folderDiv.appendChild(iconImg);
+
+      const folderNameSpan = document.createElement("span");
+      folderNameSpan.className = "fileName";
+      folderNameSpan.textContent = `${data.folderName}`;
+      folderDiv.appendChild(folderNameSpan);
 
       const removeBtn = document.createElement("div");
       removeBtn.className = "remove";
@@ -396,7 +514,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
 function updateEmptyText() {
   const chatBox = document.getElementById("chatBox");
   const emptyText = document.getElementById("emptyText");
@@ -406,4 +523,79 @@ function updateEmptyText() {
   } else {
     emptyText.style.display = "none";
   }
+}
+
+// model selection
+
+function toggleDropdown() {
+  const dropdownMenu = document.getElementById("dropdownMenu");
+  dropdownMenu.classList.toggle("show");
+  console.log("Toggle dropdown");
+}
+
+function selectModel(label) {
+  const items = document.querySelectorAll(".dropdown-item");
+  items.forEach((item) => item.classList.remove("selected"));
+
+  const selectedItem = Array.from(items).find(
+    (item) => item.getAttribute("data-label") === label
+  );
+  if (selectedItem) {
+    selectedItem.classList.add("selected");
+    console.log("Selected item:", selectedItem.getAttribute("data-label"));
+  } else {
+    console.log("Item not found for label:", label);
+  }
+
+  const selectedModel = document.getElementById("selectedModel");
+  selectedModel.textContent = label;
+
+  const dropdownMenu = document.getElementById("dropdownMenu");
+  dropdownMenu.classList.remove("show");
+}
+
+window.onclick = function (event) {
+  if (!event.target.closest(".dropdown")) {
+    const dropdownMenu = document.getElementById("dropdownMenu");
+    if (dropdownMenu.classList.contains("show")) {
+      dropdownMenu.classList.remove("show");
+      console.log("Closed dropdown");
+    }
+  }
+};
+
+// icon map
+const iconMap = {
+  angular: "angular.svg",
+  cpp: "cpp.svg",
+  cs: "cs.svg",
+  css: "css.svg",
+  docker: "docker.svg",
+  folder: "folder.svg",
+  go: "go.svg",
+  html: "html.svg",
+  java: "java.svg",
+  js: "js.svg",
+  npm: "npm.svg",
+  php: "php.svg",
+  python: "python.svg",
+  rb: "ruby.svg",
+  ts: "ts.svg",
+  tsx: "tsx.svg",
+  vue: "vue.svg",
+  default: "default.svg",
+  json: "json.svg",
+};
+
+const iconBase = document.body.getAttribute("data-icon-base");
+
+function getIconForFile(filename) {
+  const ext = filename.split(".").pop().toLowerCase();
+
+  // Nếu là thư mục
+  if (!filename.includes(".")) {
+    return `${iconBase}/${iconMap["folder"]}`;
+  }
+
+  return `${iconBase}/${iconMap[ext] || iconMap["default"]}`;
 }

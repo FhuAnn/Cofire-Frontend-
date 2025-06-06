@@ -11,13 +11,12 @@
     <!-- Highlight.js CSS -->
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/github.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css"
     />
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Highlight.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/lib/common.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   </head>
-  <body>
+  <body data-icon-base="{{iconUri}}">
     <main id="container">
       <section id="dropZone">Kéo và thả file vào đây để đính kèm</section>
       <section id="chatWrapper">
@@ -35,29 +34,80 @@
           </div>
         </section>
       </section>
-      <section id="fileInfo">
-        <button id="attachFileBtn">📎 Add context ...</button>
-        <span style="color: rgb(80, 80, 80)">📄File current:</span>
-        <div class="fileCard" id="currentFileTag">
-          <span id="currentFile">...</span>
-          <span class="subtext">current</span>
+      <section id="inputWrapper" tabindex="0">
+        <section id="fileInfo">
+          <button id="attachFileBtn">📎 Add context...</button>
+          <div class="fileComponent">
+            <div class="fileCard" id="currentFileTag">
+              <span id="currentFile">...</span>
+              <span class="subtext">Current file</span>
+            </div>
+          </div>
+          <div id="addFiles"></div>
+        </section>
+
+        <section id="inputContainer">
+          <textarea
+            id="question"
+            placeholder="Nhập câu hỏi..."
+            autocomplete="off"
+            rows="1"
+          ></textarea>
+        </section>
+        <div id="sendSection">
+          <div class="dropdown">
+            <button class="dropdown-toggle" onclick="toggleDropdown()">
+              <span id="selectedModel">GPT-4.1</span>
+              <span
+                class="arrow"
+                style="background-image: url({{dropdownIconUri}})"
+              ></span>
+            </button>
+            <div class="dropdown-menu" id="dropdownMenu">
+              <div
+                class="dropdown-item"
+                onclick="selectModel('Claude 3.5 Sonnet')"
+                data-label="Claude 3.5 Sonnet"
+              >
+                Claude 3.5 Sonnet
+              </div>
+              <div
+                class="dropdown-item"
+                onclick="selectModel('Gemini 2.0 Flash')"
+                data-label="Gemini 2.0 Flash"
+              >
+                Gemini 2.0 Flash
+              </div>
+              <div
+                class="dropdown-item selected"
+                onclick="selectModel('GPT-4.1')"
+                data-label="GPT-4.1"
+              >
+                GPT-4.1
+              </div>
+              <div
+                class="dropdown-item"
+                onclick="selectModel('GPT-4o')"
+                data-label="GPT-4o"
+              >
+                GPT-4o
+              </div>
+              <div
+                class="dropdown-item"
+                onclick="selectModel('GPT-o3-mini')"
+                data-label="GPT-o3-mini"
+              >
+                o3-mini
+              </div>
+              <div class="dropdown-footer">
+                <a href="#">Manage Models...</a>
+              </div>
+            </div>
+          </div>
+          <button id="sendBtn"><img src="{{sendIconUri}}" alt="send" /></button>
         </div>
-        <div id="addFiles"></div>
       </section>
-
-      <section id="inputContainer">
-        <textarea
-          id="question"
-          placeholder="Nhập câu hỏi..."
-          autocomplete="off"
-          rows="1"
-        ></textarea>
-      </section>
-      <div id="sendSection">
-        <button id="sendBtn">Gửi</button>
-      </div>
     </main>
-
-    <script src="{{scriptUri}}"></script>
   </body>
+    <script src="{{scriptUri}}"></script>
 </html>
