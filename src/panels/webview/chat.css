@@ -182,6 +182,7 @@ button {
 
 .fileAttach:hover {
   background-color: #e3eaee;
+  cursor: pointer;
 }
 
 #attachedFiles {
@@ -476,6 +477,14 @@ button {
 
 .dropdown-footer a:hover {
   text-decoration: underline;
+}
+
+.arrow {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  background-size: cover; 
+  background-repeat: no-repeat;
 }
 
 /* ========== 10. DROPZONE ========== */

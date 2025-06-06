@@ -17,7 +17,7 @@ export function getChatHtml(
   const htmlContent = fs.readFileSync(htmlPath.fsPath, "utf8");
 
   const scriptUri = panel.webview.asWebviewUri(
-    vscode.Uri.joinPath(webviewFolder, "chat.js")
+    vscode.Uri.joinPath(webviewFolder, "main.js")
   );
   const styleUri = panel.webview.asWebviewUri(
     vscode.Uri.joinPath(webviewFolder, "chat.css")
