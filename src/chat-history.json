@@ -1,0 +1,8 @@
+{
+  "chatId": "abc123",
+  "history": [
+    { "role": "user", "content": "Tạo hàm tính tổng" },
+    { "role": "ai", "content": "Dưới đây là ví dụ..." }
+  ],
+  "filePaths": ["file1.ts", "file2.js"]
+}
