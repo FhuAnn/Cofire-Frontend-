@@ -4,7 +4,7 @@ import { callExplainCodeAI } from "../utils/apis";
 export function registerExplainCodeCommand() {
   return vscode.commands.registerCommand("cofire.explainCode", async () => {
     const editor = vscode.window.activeTextEditor;
-    if (!editor) return;
+    if (!editor) { return ;}
 
     const selection = editor.selection;
     const code = editor.document.getText(selection).trim();

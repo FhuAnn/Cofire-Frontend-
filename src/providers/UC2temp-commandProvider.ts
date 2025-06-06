@@ -41,7 +41,7 @@ function debounceCallAPI(
   language: string,
   callback: (result: string) => void
 ) {
-  if (debounceTimer) clearTimeout(debounceTimer);
+  if (debounceTimer) {clearTimeout(debounceTimer);}
 
   debounceTimer = setTimeout(async () => {
     if (fullText === lastCode && prompt === lastPrompt) {

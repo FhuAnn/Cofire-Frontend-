@@ -15,8 +15,8 @@
         <div id="currentFileCard">
           <span style="color: rgb(80, 80, 80)">📄File current:</span>
           <div class="fileCard" id="currentFileTag">
-            <span id="currentFile">...</span>
-            <span class="subtext">current</span>
+            <span id="currentFile"></span>
+            <button id="toggleVisibilityBtn">👁️</button>
           </div>
         </div>
 
@@ -24,7 +24,6 @@
       </section>
 
       <section id="inputContainer">
-        <button id="micBtn" title="Nhấn để nói">🎤</button>
         <textarea
           id="question"
           placeholder="Nhập câu hỏi..."
@@ -36,5 +35,6 @@
     </main>
 
     <script src="{{scriptUri}}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   </body>
 </html>

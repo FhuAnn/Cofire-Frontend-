@@ -6,9 +6,9 @@ export async function registerSuggestCodeCommand() {
   const input = await vscode.window.showInputBox({
     placeHolder: "Nhập yêu cầu AI, ví dụ: viết hàm tính giai thừa",
   });
-  if (!input) return;
+  if (!input) { return; }
   const editor = vscode.window.activeTextEditor;
-  if (!editor) return;
+  if (!editor) { return; }
   const language = editor.document.languageId;
   const position = editor.selection.active;
   const contextText = editor.document.getText(

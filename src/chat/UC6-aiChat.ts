@@ -79,7 +79,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         await handleGotoSelection(message);
         break;
       case "sendPromptToModel": {
-        console.log("sendPromptToModel", message);
+        // console.log("sendPromptToModel", message);
         let filesToSend: FileToSend[] = [];
 
         for (const f of message.files) {
@@ -116,6 +116,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
           role: "user",
           content: message.prompt,
           attachedFiles: filesToSend,
+          loadingId: message.loadingId,
         };
         await requestPrompt(newChatToSend, panel);
         break;

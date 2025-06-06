@@ -1,4 +1,5 @@
 export interface ChatMessage {
+  loadingId?: string;
   role: "user" | "ai";
   content: string | any;
   attachedFiles?: FileToSend[];
