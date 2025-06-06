@@ -4,37 +4,110 @@
     <meta charset="UTF-8" />
     <title>Trợ lý mã</title>
     <link href="{{styleUri}}" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Highlight.js CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
   </head>
-  <body>
+  <body data-icon-base="{{iconUri}}">
     <main id="container">
       <section id="dropZone">Kéo và thả file vào đây để đính kèm</section>
-      <section id="chatBox"></section>
-      <section id="fileInfo">
-        <button id="attachFileBtn">Add context file</button>
-
-        <div id="currentFileCard">
-          <span style="color: rgb(80, 80, 80)">📄File current:</span>
-          <div class="fileCard" id="currentFileTag">
-            <span id="currentFile"></span>
-            <button id="toggleVisibilityBtn">👁️</button>
+      <section id="chatWrapper">
+        <section id="chatBox">
+          <div
+            id="emptyText"
+            style="
+              color: #999;
+              font-style: italic;
+              padding: 20px;
+              text-align: center;
+            "
+          >
+            Cofire - AI assistant
           </div>
-        </div>
-
-        <div id="addFiles"></div>
+        </section>
       </section>
+      <section id="inputWrapper" tabindex="0">
+        <section id="fileInfo">
+          <button id="attachFileBtn">📎 Add context...</button>
+          <div class="fileComponent" id="currentFileCard">
+            <div class="fileCard" id="currentFileTag">
+              <span id="currentFile">...</span>
+              <button id="toggleVisibilityBtn">👁️</button>
+            </div>
+          </div>
+          <div id="addFiles"></div>
+        </section>
 
-      <section id="inputContainer">
-        <textarea
-          id="question"
-          placeholder="Nhập câu hỏi..."
-          autocomplete="off"
-          rows="1"
-        ></textarea>
-        <button id="sendBtn" onclick="send()">Gửi</button>
+        <section id="inputContainer">
+          <textarea
+            id="question"
+            placeholder="Nhập câu hỏi..."
+            autocomplete="off"
+            rows="1"
+          ></textarea>
+        </section>
+        <div id="sendSection">
+          <div class="dropdown">
+            <button class="dropdown-toggle" onclick="toggleDropdown()">
+              <span id="selectedModel">GPT-4.1</span>
+              <span
+                class="arrow"
+                style="background-image: url({{dropdownIconUri}})"
+              ></span>
+            </button>
+            <div class="dropdown-menu" id="dropdownMenu">
+              <div
+                class="dropdown-item"
+                onclick="selectModel('Claude 3.5 Sonnet')"
+                data-label="Claude 3.5 Sonnet"
+              >
+                Claude 3.5 Sonnet
+              </div>
+              <div
+                class="dropdown-item"
+                onclick="selectModel('Gemini 2.0 Flash')"
+                data-label="Gemini 2.0 Flash"
+              >
+                Gemini 2.0 Flash
+              </div>
+              <div
+                class="dropdown-item selected"
+                onclick="selectModel('GPT-4.1')"
+                data-label="GPT-4.1"
+              >
+                GPT-4.1
+              </div>
+              <div
+                class="dropdown-item"
+                onclick="selectModel('GPT-4o')"
+                data-label="GPT-4o"
+              >
+                GPT-4o
+              </div>
+              <div
+                class="dropdown-item"
+                onclick="selectModel('GPT-o3-mini')"
+                data-label="GPT-o3-mini"
+              >
+                o3-mini
+              </div>
+              <div class="dropdown-footer">
+                <a href="#">Manage Models...</a>
+              </div>
+            </div>
+          </div>
+          <button id="sendBtn"><img src="{{sendIconUri}}" alt="send" /></button>
+        </div>
       </section>
     </main>
-
-    <script src="{{scriptUri}}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   </body>
+  <script src="{{scriptUri}}"></script>
 </html>

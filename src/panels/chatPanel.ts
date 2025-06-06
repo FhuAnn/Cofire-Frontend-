@@ -23,7 +23,26 @@ export function getChatHtml(
     vscode.Uri.joinPath(webviewFolder, "chat.css")
   );
 
+  const iconUri = panel.webview.asWebviewUri(
+    vscode.Uri.joinPath(webviewFolder, "assets")
+  );
+  const sendIconUri = panel.webview.asWebviewUri(
+    vscode.Uri.joinPath(webviewFolder, "assets", "send.svg")
+  );
+
+  const dropdownIconUri = panel.webview.asWebviewUri(
+    vscode.Uri.joinPath(webviewFolder, "assets", "chevron-down-arrow.svg")
+  );
+
+  const toggleFileIconUri = panel.webview.asWebviewUri(
+    vscode.Uri.joinPath(webviewFolder, "assets", "eye-empty.svg")
+  );
+
   return htmlContent
     .replace("{{styleUri}}", styleUri.toString())
-    .replace("{{scriptUri}}", scriptUri.toString());
+    .replace("{{scriptUri}}", scriptUri.toString())
+    .replace("{{iconUri}}", iconUri.toString())
+    .replace("{{sendIconUri}}", sendIconUri.toString())
+    .replace("{{dropdownIconUri}}", dropdownIconUri.toString())
+    .replace("{{toggleFileIconUri}}", toggleFileIconUri.toString());
 }

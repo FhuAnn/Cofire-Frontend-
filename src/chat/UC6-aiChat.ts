@@ -79,7 +79,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         await handleGotoSelection(message);
         break;
       case "sendPromptToModel": {
-        // console.log("sendPromptToModel", message);
+        console.log("sendPromptToModel", message);
         let filesToSend: FileToSend[] = [];
 
         for (const f of message.files) {
@@ -195,7 +195,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
               // Nếu là file, đọc nội dung và gửi về như attachFile
               const bytes = await vscode.workspace.fs.readFile(fileUri);
               const content = new TextDecoder("utf-8").decode(bytes);
-
+              console.log("prepare attach file");
               panel.webview.postMessage({
                 type: "fileAttached",
                 fileName,
