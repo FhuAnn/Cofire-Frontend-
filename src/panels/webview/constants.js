@@ -1,7 +1,6 @@
-// constants.js - Hằng số và cấu hình
+// ====== Constants and Configuration ======
 
-// Icon mapping cho các loại file
-export const iconMap = {
+export const ICON_MAP = {
   angular: "angular.svg",
   cpp: "cpp.svg",
   cs: "cs.svg",
@@ -23,25 +22,28 @@ export const iconMap = {
   json: "json.svg",
 };
 
-// Cấu hình markdown
 export const MARKED_OPTIONS = {
   langPrefix: "hljs language-",
 };
 
-// Trạng thái ứng dụng
-export const initialState = {
-  currentFile: {
-    code: "",
-    fileName: "", 
-    selectedCode: "",
-    selectionStart: 0,
-    selectionEnd: 0,
-    selectionStartCharacter: 0,
-    selectionEndCharacter: 0,
-    relativePath: "",
-  },
-  isLoading: false,
-  attachedFiles: [],
-  isInVisible: false,
-  dragCounter: 0,
+export const MODELS = [
+  { value: 'Claude 3.5 Sonnet', label: 'Claude 3.5 Sonnet' },
+  { value: 'Gemini 2.0 Flash', label: 'Gemini 2.0 Flash' },
+  { value: 'GPT-4.1', label: 'GPT-4.1' },
+  { value: 'GPT-4o', label: 'GPT-4o' },
+  { value: 'GPT-o3-mini', label: 'o3-mini' },
+];
+
+export const DEFAULT_MODEL = 'GPT-4.1';
+
+export const MESSAGE_TYPES = {
+  UPDATE: 'update',
+  REPLY: 'reply',
+  FILE_ATTACHED: 'fileAttached',
+  SELECTION_ATTACHED: 'selectionAttached',
+  FOLDER_ATTACHED: 'folderAttached',
+  ATTACH_FILE: 'attachFile',
+  SEND_PROMPT: 'sendPromptToModel',
+  GOTO_SELECTION: 'gotoSelection',
+  FILES_DROPPED: 'filesDropped'
 };

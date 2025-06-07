@@ -1,49 +1,85 @@
-// eventHandlers.js - Xử lý các sự kiện giao diện
+// ====== Event Handlers ======
+
+import { stateManager } from './stateManager.js';
+import { ChatController } from './chatController.js';
+import { DropdownController } from './dropdownController.js';
+import { MessageHandler } from './messageHandler.js';
+import { UIComponents } from './uiComponents.js';
+import { MESSAGE_TYPES } from './constants.js';
 
 export class EventHandlers {
-  constructor(state, vscode) {
-    this.state = state;
+  constructor(vscode) {
     this.vscode = vscode;
-    this.dropZone = document.getElementById("dropZone");
-    this.toggleBtn = document.getElementById("toggleVisibilityBtn");
-    this.currentFile = document.getElementById("currentFile");
+    this.chatController = new ChatController(vscode);
+    this.dropdownController = new DropdownController();
+    this.messageHandler = new MessageHandler(vscode);
+    this.uiComponents = new UIComponents(vscode);
+    
+    this.setupEventListeners();
   }
 
-  // Khởi tạo tất cả event handlers
-  initialize() {
-    this.initializeToggleButton();
-    this.initializeDragDrop();
-    this.initializeAttachButton();
-    this.initializeModelDropdown();
+  setupEventListeners() {
+    this.setupKeyboardEvents();
+    this.setupButtonEvents();
+    this.setupDragDropEvents();
+    this.setupWindowEvents();
+    this.setupDropdownEvents();
+    this.setupMessageEvents();
   }
 
-  // Toggle visibility button
-  initializeToggleButton() {
-    this.toggleBtn.addEventListener("click", () => {
-      this.state.isInVisible = !this.state.isInVisible;
-      this.toggleBtn.textContent = this.state.isInVisible ? "🙈" : "👁️";
-      
-      if (this.state.isInVisible) {
-        this.currentFile.classList.add("textLineThough");
-      } else {
-        this.currentFile.classList.remove("textLineThough");
+  setupKeyboardEvents() {
+    const questionInput = document.getElementById("question");
+    
+    questionInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        this.chatController.send();
+        this.uiComponents.updateEmptyText();
       }
     });
   }
 
-  // Drag and drop functionality
-  initializeDragDrop() {
+  setupButtonEvents() {
+    // Send button
+    const sendBtn = document.getElementById("sendBtn");
+    if (sendBtn) {
+      sendBtn.addEventListener("click", () => {
+        this.chatController.send();
+        this.uiComponents.updateEmptyText();
+      });
+    }
+
+    // Attach file button
+    const attachFileBtn = document.getElementById("attachFileBtn");
+    if (attachFileBtn) {
+      attachFileBtn.addEventListener("click", () => {
+        this.chatController.attachFile();
+      });
+    }
+
+    // Toggle visibility button
+    const toggleBtn = document.getElementById("toggleVisibilityBtn");
+    if (toggleBtn) {
+      toggleBtn.addEventListener("click", () => {
+        this.chatController.toggleVisibility();
+      });
+    }
+  }
+
+  setupDragDropEvents() {
+    const dropZone = document.getElementById("dropZone");
+
     window.addEventListener("dragenter", (e) => {
       e.preventDefault();
-      this.state.dragCounter++;
-      this.dropZone.classList.add("active");
+      stateManager.incrementDragCounter();
+      dropZone.classList.add("active");
     });
 
     window.addEventListener("dragleave", (e) => {
       e.preventDefault();
-      this.state.dragCounter--;
-      if (this.state.dragCounter === 0) {
-        this.dropZone.classList.remove("active");
+      const count = stateManager.decrementDragCounter();
+      if (count === 0) {
+        dropZone.classList.remove("active");
       }
     });
 
@@ -51,12 +87,14 @@ export class EventHandlers {
       e.preventDefault();
     });
 
-    window.addEventListener("drop", (e) => {
+    window.addEventListener("drop", async (e) => {
       e.preventDefault();
-      this.state.dragCounter = 0;
-      this.dropZone.classList.remove("active");
+      stateManager.resetDragCounter();
+      dropZone.classList.remove("active");
       
       const uriList = e.dataTransfer.getData("text/uri-list");
+      console.log("Dropped URIs:", uriList);
+      
       if (uriList) {
         const uris = uriList
           .split("\n")
@@ -65,7 +103,7 @@ export class EventHandlers {
         
         if (uris.length > 0) {
           this.vscode.postMessage({
-            type: "filesDropped",
+            type: MESSAGE_TYPES.FILES_DROPPED,
             uris: uris,
           });
         }
@@ -73,47 +111,43 @@ export class EventHandlers {
     });
   }
 
-  // Attach file button
-  initializeAttachButton() {
-    document.getElementById("attachFileBtn").onclick = () => {
-      this.vscode.postMessage({ type: "attachFile" });
-    };
+  setupWindowEvents() {
+    // Click outside dropdown to close
+    window.addEventListener("click", (event) => {
+      this.dropdownController.handleOutsideClick(event);
+    });
+
+    // DOMContentLoaded for initialization
+    document.addEventListener("DOMContentLoaded", () => {
+      this.uiComponents.updateEmptyText();
+    });
   }
 
-  // Model dropdown functionality
-  initializeModelDropdown() {
-    window.toggleDropdown = () => {
-      const dropdownMenu = document.getElementById("dropdownMenu");
-      dropdownMenu.classList.toggle("show");
-    };
+  setupDropdownEvents() {
+    // Dropdown toggle button
+    const dropdownToggle = document.querySelector(".dropdown-toggle");
+    if (dropdownToggle) {
+      dropdownToggle.addEventListener("click", () => {
+        this.dropdownController.toggleDropdown();
+      });
+    }
 
-    window.selectModel = (label) => {
-      const items = document.querySelectorAll(".dropdown-item");
-      items.forEach((item) => item.classList.remove("selected"));
+    // Dropdown items
+    const dropdownItems = document.querySelectorAll(".dropdown-item");
+    dropdownItems.forEach(item => {
+      item.addEventListener("click", () => {
+        const label = item.getAttribute("data-label");
+        this.dropdownController.selectModel(label);
+      });
+    });
+  }
 
-      const selectedItem = Array.from(items).find(
-        (item) => item.getAttribute("data-label") === label
-      );
-      
-      if (selectedItem) {
-        selectedItem.classList.add("selected");
-      }
-
-      const selectedModel = document.getElementById("selectedModel");
-      selectedModel.textContent = label;
-
-      const dropdownMenu = document.getElementById("dropdownMenu");
-      dropdownMenu.classList.remove("show");
-    };
-
-    // Close dropdown when clicking outside
-    window.onclick = (event) => {
-      if (!event.target.closest(".dropdown")) {
-        const dropdownMenu = document.getElementById("dropdownMenu");
-        if (dropdownMenu.classList.contains("show")) {
-          dropdownMenu.classList.remove("show");
-        }
-      }
-    };
+  setupMessageEvents() {
+    // Listen for messages from VS Code extension
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+      console.log("Received message from extension:", data);
+      this.messageHandler.handleMessage(data);
+    });
   }
 }

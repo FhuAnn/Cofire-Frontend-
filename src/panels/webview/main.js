@@ -1,46 +1,62 @@
-// main.js - File chính khởi tạo ứng dụng
+// ====== Main Application Initialization ======
 
-import { initialState } from './constants.js';
-import { FileManager } from './fileManager.js';
-import { ChatManager } from './chatManager.js';
 import { EventHandlers } from './eventHandlers.js';
-import { MessageHandlers } from './messageHandlers.js';
-import { updateEmptyText } from './domUtils.js';
+import { MarkdownRenderer } from './markdownRenderer.js';
+import { stateManager } from './stateManager.js';
+import { UIComponents } from './uiComponents.js';
 
-// Khởi tạo ứng dụng
 class ChatExtension {
   constructor() {
-    this.vscode = acquireVsCodeApi();
-    this.state = { ...initialState };
-    
-    // Khởi tạo các manager
-    this.fileManager = new FileManager(this.state, this.vscode);
-    this.chatManager = new ChatManager(this.fileManager, this.vscode);
-    this.eventHandlers = new EventHandlers(this.state, this.vscode);
-    this.messageHandler = new MessageHandlers(this.fileManager, this.chatManager);
+    this.vscode = null;
+    this.eventHandlers = null;
+    this.markdownRenderer = null;
+    this.uiComponents = null;
   }
 
-  // Khởi tạo ứng dụng
-  initialize() {
-    // Khởi tạo event handlers
-    this.eventHandlers.initialize();
-    this.chatManager.initializeEventListeners();
-    this.messageHandler.initialize();
+  init() {
+    try {
+      // Initialize VS Code API
+      this.vscode = acquireVsCodeApi();
+      
+      // Initialize components
+      this.markdownRenderer = new MarkdownRenderer();
+      this.uiComponents = new UIComponents(this.vscode);
+      this.eventHandlers = new EventHandlers(this.vscode);
 
-    // Cập nhật empty text khi DOM loaded
-    document.addEventListener("DOMContentLoaded", () => {
-      updateEmptyText();
-    });
+      // Set up initial UI state
+      this.setupInitialState();
 
-    console.log("Chat app initialized successfully");
+      console.log("Chat application initialized successfully");
+    } catch (error) {
+      console.error("Failed to initialize chat application:", error);
+    }
+  }
+
+  setupInitialState() {
+    // Update empty text display
+    this.uiComponents.updateEmptyText();
+    
+    // Focus on question input
+    const questionInput = document.getElementById("question");
+    if (questionInput) {
+      questionInput.focus();
+    }
+
+    // Initialize current file display
+    const currentFile = stateManager.getCurrentFile();
+    const isInVisible = stateManager.isInVisible();
+    this.uiComponents.updateCurrentFileDisplay(currentFile, isInVisible);
+
+    // Initialize toggle button
+    this.uiComponents.updateToggleButton(isInVisible);
+
+    console.log("Initial state setup completed");
   }
 }
 
-// Khởi tạo ứng dụng khi DOM ready
+// Initialize application when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
-  const app = new ChatExtension();
-  app.initialize();
+  window.chatExtension = new ChatExtension();
+  window.chatExtension.init();
 });
 
-// Export cho debugging (optional)
-window.ChatExtension = ChatExtension;
