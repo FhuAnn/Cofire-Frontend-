@@ -403,6 +403,45 @@ button {
   color: white;
 }
 
+.code-wrapper pre.hljs {
+  margin: 0;
+  padding: 0.5em 1em;
+  white-space: pre; /* Giữ nguyên khoảng trắng, không wrap */
+  overflow-x: auto;
+  background: var(--code-bg);
+  font-family: "Fira Code", monospace, monospace;
+  font-size: 14px;
+}
+
+.code-wrapper pre.hljs code {
+  display: block; /* tránh inline gây indent lạ */
+  padding: 0;
+  margin: 0;
+}
+
+.code-mention {
+  display: inline-block;
+  background-color: #f0f4ff;
+  border: 1px solid #b3c7ff;
+  border-radius: 4px;
+  padding: 1px 3px;
+  color: #003366;
+  font-weight: 500;
+  text-decoration: none;
+  font-family: monospace;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.code-mention:hover {
+  background-color: #dbe7ff;
+  border-color: #779eff;
+}
+
+.code-mention * {
+  background-color: transparent !important;
+  text-decoration: none !important;
+}
+
 /* ========== 9. DROPDOWN MENU ========== */
 .dropdown {
   position: relative;
@@ -483,7 +522,7 @@ button {
   width: 16px;
   height: 16px;
   display: inline-block;
-  background-size: cover; 
+  background-size: cover;
   background-repeat: no-repeat;
 }
 

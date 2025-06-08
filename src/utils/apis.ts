@@ -1,6 +1,15 @@
 import axios from "axios";
 import * as vscode from "vscode";
 
+
+export async function updateModels(model: string) {
+  const res = await axios.post("http://localhost:5000/update-model", {
+    selectedModel: model,
+  });
+  const json = res.data;
+  return json ;
+}
+
 export async function callManualCompletionAI(
   prompt: string,
   language: string,
@@ -84,6 +93,7 @@ export async function callChatAI(userPrompt: string): Promise<string> {
 
   return response.data.data;
 }
+
 
 export async function callAPIInlineCompletionCode(
   fullText: string,

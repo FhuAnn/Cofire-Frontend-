@@ -3,6 +3,7 @@
   "displayName": "cofire",
   "description": "",
   "version": "0.0.1",
+  "icon": "images/icon.png",
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -114,7 +115,7 @@
       {
         "command": "cofire.chatWithAI",
         "key": "ctrl+alt+i",
-        "title": "Chat with AI"
+        "title": "Cofire - AI assistant"
       }
     ]
   },

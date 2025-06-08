@@ -7,6 +7,7 @@ import { MESSAGE_TYPES } from "./constants.js";
 export class UIComponents {
   constructor(vscode) {
     this.vscode = vscode;
+    console.log("UIComponents inittial", this.vscode);
   }
 
   createUserMessage(messageId, question) {
@@ -25,12 +26,13 @@ export class UIComponents {
   }
 
   createLoadingMessage(loadingId) {
+    const model = stateManager.getSelectedModel();
     const aiBlock = document.createElement("div");
     aiBlock.className = "messageBlock ai";
     aiBlock.id = loadingId;
     aiBlock.tabIndex = 0;
     aiBlock.innerHTML = `
-      <div class="robot loading">🤖 AI: <i>đang xử lý...</i></div>
+      <div class="robot loading">🤖 ${model}: <i>đang xử lý...</i></div>
     `;
     return aiBlock;
   }
@@ -144,11 +146,20 @@ export class UIComponents {
     }
   }
 
+  
+
   updateEmptyText() {
     const chatBox = document.getElementById("chatBox");
     const emptyText = document.getElementById("emptyText");
 
-    if (chatBox.children.length === 1) {
+    if (!chatBox || !emptyText) {
+      console.warn("Không tìm thấy phần tử chatBox hoặc emptyText.");
+      return;
+    }
+
+    const chatMessages = chatBox.querySelectorAll(".messageBlock");
+
+    if (chatMessages.length === 0) {
       emptyText.style.display = "block";
     } else {
       emptyText.style.display = "none";

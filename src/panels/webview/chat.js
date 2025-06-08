@@ -29,7 +29,7 @@ renderer.code = (code, infostring) => {
 
   const copyBtn = `<button class="copy-btn" aria-label="Sao chép code" title="Sao chép code">Sao chép</button>`;
 
-  return `
+  return dedent(`
     <div class="code-wrapper">
       <pre class="hljs language-${language}">
         <code>${highlightedCode}</code>
@@ -37,7 +37,7 @@ renderer.code = (code, infostring) => {
         ${langLabel}
         ${copyBtn}
     </div>
-  `;
+  `);
 };
 
 // Hàm render markdown

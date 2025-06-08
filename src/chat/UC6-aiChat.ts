@@ -6,6 +6,7 @@ import { requestPrompt } from "./function/requestPrompt";
 import { handleGotoSelection } from "./function/goToSelection";
 import { currentPanel, setCurrentPanel } from "../panels/panelState";
 import { ChatMessage, FileToSend } from "../types";
+import { updateModels } from "../utils/apis";
 
 let currentCode: string = "";
 let currentFileName: string = "";
@@ -60,13 +61,18 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
   }
   const panel = vscode.window.createWebviewPanel(
     "chatWithAI",
-    "Chat with AI",
+    "Cofire - AI assistant",
     { viewColumn: vscode.ViewColumn.Beside, preserveFocus: false },
     {
       enableScripts: true,
       retainContextWhenHidden: true,
     }
   );
+  
+  panel.iconPath = {
+  light: vscode.Uri.file(path.join(context.extensionPath, 'images', 'icon.png')),
+  dark: vscode.Uri.file(path.join(context.extensionPath, 'images', 'icon.png'))
+};
 
   setCurrentPanel(panel);
 
@@ -74,6 +80,55 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
 
   panel.webview.onDidReceiveMessage(async (message) => {
     switch (message.type) {
+      case "gotoSymbol":
+        const { file, mention } = message;
+
+        console.log("Cofire-fe gotoSymbol ::: ", message);
+
+        try {
+          // Tạo URI từ đường dẫn tương đối
+          const workspaceFolders = vscode.workspace.workspaceFolders;
+          if (!workspaceFolders) {
+            vscode.window.showErrorMessage("Không tìm thấy workspace đang mở.");
+            return;
+          }
+
+          const rootUri = workspaceFolders[0].uri;
+          const fileUri = vscode.Uri.joinPath(rootUri, file);
+
+          // Mở file ở bên trái (ViewColumn.One)
+          const document = await vscode.workspace.openTextDocument(fileUri);
+          const editor = await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+
+          // Tìm vị trí đầu tiên của "mention"
+          const text = document.getText();
+
+          console.log("Text content:", text);
+
+          const index = text.indexOf(mention);
+          if (index === -1) {
+            vscode.window.showWarningMessage(`Không tìm thấy "${mention}" trong file ${file}`);
+            return;
+          }
+
+          const startPos = document.positionAt(index);
+          const endPos = startPos.translate(0, mention.length);
+          const range = new vscode.Range(startPos, endPos);
+
+          // Highlight và scroll đến vị trí
+          editor.selection = new vscode.Selection(startPos, endPos);
+          editor.revealRange(range, vscode.TextEditorRevealType.InCenter);
+
+        } catch (error) {
+          vscode.window.showErrorMessage(`Lỗi khi mở file hoặc tìm "${mention}": ${error}`);
+          console.error("gotoSymbol error:", error);
+        }
+
+        break;
+      case "modelSelected":
+        console.log("get modelSelected from aiChat", message);
+        await updateModels(message.model);
+        break;
       case "gotoSelection":
         //console.log("gotoSelection", message);
         await handleGotoSelection(message);
@@ -90,6 +145,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
               "**/node_modules/**"
             );
             for (const fileUri of files) {
+
               const fileName = fileUri.path.split("/").pop() || fileUri.fsPath;
               const content = (
                 await vscode.workspace.fs.readFile(fileUri)
@@ -118,6 +174,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
           attachedFiles: filesToSend,
           loadingId: message.loadingId,
         };
+        // await requestPrompt(newChatToSend, panel);
         await requestPrompt(newChatToSend, panel);
         break;
       }
@@ -136,6 +193,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         });
         if (picked) {
           const fileUri = picked.uri;
+
           const stat = await vscode.workspace.fs.stat(fileUri);
           const workspaceFolder = vscode.workspace.getWorkspaceFolder(fileUri);
           const relativePath = workspaceFolder
@@ -154,6 +212,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
             });
           } else {
             const fileName = fileUri.path.split("/").pop() || fileUri.fsPath;
+
             const content = (
               await vscode.workspace.fs.readFile(fileUri)
             ).toString();

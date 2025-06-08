@@ -4,7 +4,7 @@ import { MESSAGE_TYPES } from "./constants.js";
 import { stateManager } from "./stateManager.js";
 import { UIComponents } from "./uiComponents.js";
 import { markdownRenderer } from "./markdownRenderer.js";
-import { scrollToBottom } from "./utils.js";
+import { revealHtmlBlocksGradually, scrollToBottom } from "./utils.js";
 
 export class MessageHandler {
   constructor(vscode) {
@@ -49,16 +49,16 @@ export class MessageHandler {
 
     robotDiv.classList.remove("loading");
 
-    // Tạo div markdown-content mới
     const mdContainer = document.createElement("div");
     mdContainer.className = "markdown-content";
 
-    // Render markdown vào div này
-    markdownRenderer.renderMarkdown(data.reply, mdContainer);
+    const tempContainer = document.createElement("div");
+    markdownRenderer.renderMarkdown(data.reply, tempContainer);
 
-    // Gán innerHTML cho robotDiv với phần header + markdown-content
-    robotDiv.innerHTML = `🤖 AI:`;
+    robotDiv.innerHTML = `🤖 ${stateManager.getSelectedModel()}:`;
     robotDiv.appendChild(mdContainer);
+
+    revealHtmlBlocksGradually(tempContainer, mdContainer, this.vscode, 100); 
 
     const chatBox = document.getElementById("chatBox");
     scrollToBottom(chatBox);
@@ -97,6 +97,8 @@ export class MessageHandler {
     // Focus input
     document.getElementById("question").focus();
   }
+
+  
 
   handleSelectionAttached(data) {
     const fileObj = {

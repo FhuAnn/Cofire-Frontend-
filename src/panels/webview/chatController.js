@@ -1,25 +1,40 @@
 // ====== Chat Controller ======
 
-import { stateManager } from './stateManager.js';
-import { UIComponents } from './uiComponents.js';
-import { generateMessageId, generateLoadingId, scrollToBottom } from './utils.js';
-import { MESSAGE_TYPES } from './constants.js';
+import { stateManager } from "./stateManager.js";
+import { UIComponents } from "./uiComponents.js";
+import {
+  generateMessageId,
+  generateLoadingId,
+  scrollToBottom,
+} from "./utils.js";
+import { MESSAGE_TYPES, MODELS } from "./constants.js";
 
 export class ChatController {
   constructor(vscode) {
     this.vscode = vscode;
     this.uiComponents = new UIComponents(vscode);
+    this.lastUsedModel = stateManager.getSelectedModel();
   }
 
   send() {
+    const model = stateManager.getSelectedModel();
     const questionInput = document.getElementById("question");
     const chatBox = document.getElementById("chatBox");
-    
+
     const messageId = generateMessageId();
     const question = questionInput.value.trim();
-    
+
     if (!question) {
       return;
+    }
+
+    // kiểm tra model
+    const prevModel = this.lastUsedModel;
+    const isNewModel = model !== prevModel;
+
+    if (isNewModel) {
+      chatBox.innerHTML = ""; 
+      this.lastUsedModel = model; 
     }
 
     // Create user message
@@ -37,8 +52,11 @@ export class ChatController {
     const filesToSend = this.prepareFilesToSend();
 
     // Add file attachments to message
-    filesToSend.forEach(file => {
-      const fileElement = this.uiComponents.createFileAttachElement(file, messageId);
+    filesToSend.forEach((file) => {
+      const fileElement = this.uiComponents.createFileAttachElement(
+        file,
+        messageId
+      );
       const parent = document.getElementById(messageId);
       if (parent) {
         parent.appendChild(fileElement);
@@ -70,7 +88,8 @@ export class ChatController {
         (f) =>
           f.relativePath === currentFile.relativePath &&
           !f.type &&
-          (f.type !== "selection" || f.selectedCode === currentFile.selectedCode)
+          (f.type !== "selection" ||
+            f.selectedCode === currentFile.selectedCode)
       )
     ) {
       filesToSend.push({
@@ -82,7 +101,7 @@ export class ChatController {
 
     // Add attached files
     filesToSend = [...filesToSend, ...stateManager.getAttachedFiles()];
-    
+
     return filesToSend;
   }
 
@@ -92,7 +111,7 @@ export class ChatController {
 
     // Reset input
     questionInput.value = "";
-    
+
     // Clear attached files
     stateManager.clearAttachedFiles();
     attachedFilesDisplay.innerHTML = "";

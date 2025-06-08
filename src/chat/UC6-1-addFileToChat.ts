@@ -16,6 +16,7 @@ export async function addFileToChat(
     ? vscode.workspace.asRelativePath(fileUri)
     : fileUri.fsPath;
 
+
   if (stat.type === vscode.FileType.Directory) {
     // Nếu là folder, gửi thông tin folder
     currentPanel?.webview.postMessage({

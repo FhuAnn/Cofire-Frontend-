@@ -56,8 +56,14 @@ Instructions:
 - Use markdown for emphasis, lists, and structure.
 - Be concise and clear.
 - Respect the language used in the user request.
+- Respond directly to the user in Markdown format.
 
-Respond directly to the user in Markdown format.
+Special formatting rule for code mentions:
+- When referring to a function, variable, or class in code, format the reference using the following markdown link structure:
+  - [\`symbolName\`](goto://relative/path/to/file.ts:lineNumber)
+- For example:
+  - [\`calculateTotal\`](goto://src/utils/math.ts:42)
+- Only use this format for symbols in code that exist in specific files and lines.
 `;
 
   try {

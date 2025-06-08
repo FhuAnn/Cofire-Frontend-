@@ -13,10 +13,12 @@ export const ICON_MAP = {
   js: "js.svg",
   npm: "npm.svg",
   php: "php.svg",
-  python: "python.svg",
+  py: "python.svg",
   rb: "ruby.svg",
   ts: "ts.svg",
   tsx: "tsx.svg",
+  jsx: "jsx.svg",
+  sql: "sql.svg",
   vue: "vue.svg",
   default: "default.svg",
   json: "json.svg",
@@ -27,14 +29,15 @@ export const MARKED_OPTIONS = {
 };
 
 export const MODELS = [
-  { value: 'Claude 3.5 Sonnet', label: 'Claude 3.5 Sonnet' },
-  { value: 'Gemini 2.0 Flash', label: 'Gemini 2.0 Flash' },
-  { value: 'GPT-4.1', label: 'GPT-4.1' },
-  { value: 'GPT-4o', label: 'GPT-4o' },
-  { value: 'GPT-o3-mini', label: 'o3-mini' },
+  // { value: 'Claude 3.5 Sonnet', label: 'Claude 3.5 Sonnet' },
+  { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
+  { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
+  // { value: 'GPT-4.1', label: 'GPT-4.1' },
+  // { value: 'GPT-4o', label: 'GPT-4o' },
+  // { value: 'GPT-o3-mini', label: 'o3-mini' },
 ];
 
-export const DEFAULT_MODEL = 'GPT-4.1';
+export const DEFAULT_MODEL = 'gemini-2.0-flash';
 
 export const MESSAGE_TYPES = {
   UPDATE: 'update',

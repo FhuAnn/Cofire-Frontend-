@@ -1,11 +1,11 @@
 // ====== Event Handlers ======
 
-import { stateManager } from './stateManager.js';
-import { ChatController } from './chatController.js';
-import { DropdownController } from './dropdownController.js';
-import { MessageHandler } from './messageHandler.js';
-import { UIComponents } from './uiComponents.js';
-import { MESSAGE_TYPES } from './constants.js';
+import { stateManager } from "./stateManager.js";
+import { ChatController } from "./chatController.js";
+import { DropdownController } from "./dropdownController.js";
+import { MessageHandler } from "./messageHandler.js";
+import { UIComponents } from "./uiComponents.js";
+import { MESSAGE_TYPES } from "./constants.js";
 
 export class EventHandlers {
   constructor(vscode) {
@@ -14,7 +14,7 @@ export class EventHandlers {
     this.dropdownController = new DropdownController();
     this.messageHandler = new MessageHandler(vscode);
     this.uiComponents = new UIComponents(vscode);
-    
+
     this.setupEventListeners();
   }
 
@@ -29,7 +29,7 @@ export class EventHandlers {
 
   setupKeyboardEvents() {
     const questionInput = document.getElementById("question");
-    
+
     questionInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
@@ -91,16 +91,16 @@ export class EventHandlers {
       e.preventDefault();
       stateManager.resetDragCounter();
       dropZone.classList.remove("active");
-      
+
       const uriList = e.dataTransfer.getData("text/uri-list");
       console.log("Dropped URIs:", uriList);
-      
+
       if (uriList) {
         const uris = uriList
           .split("\n")
           .map((line) => line.trim())
           .filter((line) => line.length > 0);
-        
+
         if (uris.length > 0) {
           this.vscode.postMessage({
             type: MESSAGE_TYPES.FILES_DROPPED,
@@ -134,10 +134,15 @@ export class EventHandlers {
 
     // Dropdown items
     const dropdownItems = document.querySelectorAll(".dropdown-item");
-    dropdownItems.forEach(item => {
+    dropdownItems.forEach((item) => {
       item.addEventListener("click", () => {
         const label = item.getAttribute("data-label");
         this.dropdownController.selectModel(label);
+
+        this.vscode.postMessage({
+          type: "modelSelected",
+          model: stateManager.getSelectedModel(),
+        });
       });
     });
   }

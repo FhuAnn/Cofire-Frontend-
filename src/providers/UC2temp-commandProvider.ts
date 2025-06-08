@@ -15,7 +15,7 @@ export const inlineCompletionProvider: vscode.InlineCompletionItemProvider = {
       const language = document.languageId;
 
       debounceCallAPI(fullText, codeUntilCursor, language, (result) => {
-        if (result?.trim()) {
+        if (result) {
           resolve([
             new vscode.InlineCompletionItem(
               result,
@@ -62,5 +62,5 @@ function debounceCallAPI(
       console.error("Inline completion error:", err);
       callback(""); // fallback to empty
     }
-  }, 500); // delay 500ms sau khi ngưng gõ
+  }, 3000); // delay 500ms sau khi ngưng gõ
 }

@@ -1,6 +1,7 @@
 // ====== Dropdown Controller ======
 
-import { stateManager } from './stateManager.js';
+import { MODELS } from "./constants.js";
+import { stateManager } from "./stateManager.js";
 
 export class DropdownController {
   constructor() {
@@ -20,7 +21,7 @@ export class DropdownController {
     const selectedItem = Array.from(items).find(
       (item) => item.getAttribute("data-label") === label
     );
-    
+
     if (selectedItem) {
       selectedItem.classList.add("selected");
       console.log("Selected item:", selectedItem.getAttribute("data-label"));
@@ -28,8 +29,20 @@ export class DropdownController {
       console.log("Item not found for label:", label);
     }
 
-    this.selectedModelElement.textContent = label;
-    stateManager.setSelectedModel(label);
+    // Tìm object model trong MODELS dựa trên label
+    const modelObj = MODELS.find((m) => m.label === label);
+
+    if (modelObj) {
+      // Hiển thị label
+      this.selectedModelElement.textContent = modelObj.label;
+      // Lấy value để set model
+      stateManager.setSelectedModel(modelObj.value);
+    } else {
+      // fallback nếu không tìm thấy
+      this.selectedModelElement.textContent = label;
+      stateManager.setSelectedModel(label);
+    }
+
     this.closeDropdown();
   }
 

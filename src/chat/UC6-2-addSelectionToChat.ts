@@ -29,6 +29,8 @@ export async function addSelectionToChat(context: vscode.ExtensionContext) {
     ? vscode.workspace.asRelativePath(fullPath)
     : fullPath;
 
+ 
+
   currentPanel?.webview.postMessage({
     type: "selectionAttached",
     fileName,
