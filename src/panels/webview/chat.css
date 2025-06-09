@@ -271,7 +271,6 @@ button {
   line-height: 1.6;
   color: var(--text-dark);
   background-color: #fafafa;
-  padding: 20px;
   border-radius: 8px;
   overflow-wrap: break-word;
 }

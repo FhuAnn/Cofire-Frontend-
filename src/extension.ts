@@ -43,7 +43,7 @@ async function checkBackendStatusStart() {
     if (result.status === "ready") {
       vscode.window.showInformationMessage("✅ Cofire đã sẵn sàng!");
     } else {
-      vscode.window.showWarningMessage("⚠️ Cofire chưa sẵn sàng.");
+      vscode.window.showWarningMessage(`⚠️ Cofire chưa sẵn sàng. Lỗi : ${result.error}`);
     }
   } catch (error: any) {
     vscode.window.showErrorMessage(

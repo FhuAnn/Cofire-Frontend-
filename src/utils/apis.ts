@@ -28,7 +28,7 @@ export async function checkBackendStatus() {
   const res = await fetch("http://localhost:5000/status");
   const json = await res.json();
 
-  return json as { status: string };
+  return json as { status: string, error?: string };
 }
 let lastAbortController: AbortController | null = null;
 //UC2
