@@ -593,39 +593,4 @@ toggleBtn.addEventListener("click", () => {
 
 // model selection
 
-function toggleDropdown() {
-  const dropdownMenu = document.getElementById("dropdownMenu");
-  dropdownMenu.classList.toggle("show");
-  console.log("Toggle dropdown");
-}
 
-function selectModel(label) {
-  const items = document.querySelectorAll(".dropdown-item");
-  items.forEach((item) => item.classList.remove("selected"));
-
-  const selectedItem = Array.from(items).find(
-    (item) => item.getAttribute("data-label") === label
-  );
-  if (selectedItem) {
-    selectedItem.classList.add("selected");
-    console.log("Selected item:", selectedItem.getAttribute("data-label"));
-  } else {
-    console.log("Item not found for label:", label);
-  }
-
-  const selectedModel = document.getElementById("selectedModel");
-  selectedModel.textContent = label;
-
-  const dropdownMenu = document.getElementById("dropdownMenu");
-  dropdownMenu.classList.remove("show");
-}
-
-window.onclick = function (event) {
-  if (!event.target.closest(".dropdown")) {
-    const dropdownMenu = document.getElementById("dropdownMenu");
-    if (dropdownMenu.classList.contains("show")) {
-      dropdownMenu.classList.remove("show");
-      console.log("Closed dropdown");
-    }
-  }
-};

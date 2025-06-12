@@ -29,12 +29,12 @@ export const MARKED_OPTIONS = {
 };
 
 export const MODELS = [
-  // { value: 'Claude 3.5 Sonnet', label: 'Claude 3.5 Sonnet' },
+  { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet' },
   { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
   { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
-  // { value: 'GPT-4.1', label: 'GPT-4.1' },
-  // { value: 'GPT-4o', label: 'GPT-4o' },
-  // { value: 'GPT-o3-mini', label: 'o3-mini' },
+  { value: 'gpt-4.1', label: 'GPT-4.1' },
+  { value: 'gpt-4o', label: 'GPT-4o' },
+  { value: 'gpt-o3-mini', label: 'o3-mini' },
 ];
 
 export const DEFAULT_MODEL = 'gemini-2.0-flash';
@@ -48,5 +48,6 @@ export const MESSAGE_TYPES = {
   ATTACH_FILE: 'attachFile',
   SEND_PROMPT: 'sendPromptToModel',
   GOTO_SELECTION: 'gotoSelection',
-  FILES_DROPPED: 'filesDropped'
+  FILES_DROPPED: 'filesDropped',
+  NEW_MODEL_SELECTED: 'newModelSelected',
 };

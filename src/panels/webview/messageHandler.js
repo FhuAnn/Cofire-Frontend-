@@ -1,6 +1,6 @@
 // ====== Message Handler ======
 
-import { MESSAGE_TYPES } from "./constants.js";
+import { MESSAGE_TYPES, MODELS } from "./constants.js";
 import { stateManager } from "./stateManager.js";
 import { UIComponents } from "./uiComponents.js";
 import { markdownRenderer } from "./markdownRenderer.js";
@@ -28,6 +28,9 @@ export class MessageHandler {
         break;
       case MESSAGE_TYPES.FOLDER_ATTACHED:
         this.handleFolderAttached(data);
+        break;
+      case MESSAGE_TYPES.NEW_MODEL_SELECTED:
+        this.handleNewModelSelected(data);
         break;
     }
   }
@@ -58,7 +61,7 @@ export class MessageHandler {
     robotDiv.innerHTML = `🤖 ${stateManager.getSelectedModel()}:`;
     robotDiv.appendChild(mdContainer);
 
-    revealHtmlBlocksGradually(tempContainer, mdContainer, this.vscode, 100); 
+    revealHtmlBlocksGradually(tempContainer, mdContainer, this.vscode, 100);
 
     const chatBox = document.getElementById("chatBox");
     scrollToBottom(chatBox);
@@ -97,8 +100,6 @@ export class MessageHandler {
     // Focus input
     document.getElementById("question").focus();
   }
-
-  
 
   handleSelectionAttached(data) {
     const fileObj = {
@@ -172,5 +173,32 @@ export class MessageHandler {
 
     // Focus input
     document.getElementById("question").focus();
+  }
+
+  handleNewModelSelected(data) {
+    const otherModels = document.getElementById("dropdown-other");
+    if (otherModels) {
+      otherModels.style.display = "flex";
+    }
+
+    const { label, value } = data.modelData;
+
+    // kiểm tra xem đã có chưa
+    const existingModel = document.querySelector(
+      `.dropdown-item.user-model[data-label="${value}"]`
+    );
+
+    if (!existingModel) {
+      const newModelDiv = document.createElement("div");
+      newModelDiv.className = "dropdown-item user-model";
+      newModelDiv.setAttribute("data-label", value);
+      newModelDiv.textContent = label;
+
+      console.log("newModelDiv:", newModelDiv);
+
+      otherModels.insertAdjacentElement("afterend", newModelDiv);
+    } else {
+      console.log(`Model "${value}" đã tồn tại, không thêm lại.`);
+    }
   }
 }

@@ -14,33 +14,37 @@ export class DropdownController {
     console.log("Toggle dropdown");
   }
 
-  selectModel(label) {
+  selectModel(value) {
     const items = document.querySelectorAll(".dropdown-item");
     items.forEach((item) => item.classList.remove("selected"));
 
     const selectedItem = Array.from(items).find(
-      (item) => item.getAttribute("data-label") === label
+      (item) => item.getAttribute("data-label") === value
     );
 
     if (selectedItem) {
       selectedItem.classList.add("selected");
-      console.log("Selected item:", selectedItem.getAttribute("data-label"));
+      console.log(
+        "Selected item (value):",
+        selectedItem.getAttribute("data-label")
+      );
     } else {
-      console.log("Item not found for label:", label);
+      console.log("Item not found for value:", value);
     }
 
-    // Tìm object model trong MODELS dựa trên label
-    const modelObj = MODELS.find((m) => m.label === label);
+    // Tìm object model trong MODELS dựa trên value
+    const modelObj = MODELS.find((m) => m.value === value);
 
     if (modelObj) {
       // Hiển thị label
       this.selectedModelElement.textContent = modelObj.label;
-      // Lấy value để set model
+      // Set model theo value
       stateManager.setSelectedModel(modelObj.value);
     } else {
-      // fallback nếu không tìm thấy
-      this.selectedModelElement.textContent = label;
-      stateManager.setSelectedModel(label);
+      // fallback nếu không tìm thấy modelObj
+      this.selectedModelElement.textContent =
+        selectedItem?.textContent ?? value;
+      stateManager.setSelectedModel(value);
     }
 
     this.closeDropdown();

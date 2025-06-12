@@ -500,6 +500,16 @@ button {
   background-color: var(--hover-bg);
 }
 
+#dropdown-other {
+  padding: 5px;
+  display: none;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  font-size: 12px;
+  color: var(--text-light)
+}
+
 .dropdown-footer {
   display: flex;
   justify-content: space-between;

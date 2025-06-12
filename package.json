@@ -134,6 +134,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
     "@types/vscode": "^1.100.0",
@@ -147,6 +148,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "axios": "^1.9.0"
+    "axios": "^1.9.0",
+    "jsonwebtoken": "^9.0.2"
   }
 }

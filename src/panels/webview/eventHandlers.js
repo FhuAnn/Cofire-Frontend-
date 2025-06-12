@@ -132,19 +132,39 @@ export class EventHandlers {
       });
     }
 
-    // Dropdown items
-    const dropdownItems = document.querySelectorAll(".dropdown-item");
-    dropdownItems.forEach((item) => {
-      item.addEventListener("click", () => {
-        const label = item.getAttribute("data-label");
-        this.dropdownController.selectModel(label);
+    const dropdownMenu = document.getElementById("dropdownMenu");
+    if (dropdownMenu) {
+      dropdownMenu.addEventListener("click", (e) => {
+        const target = e.target.closest(".dropdown-item");
+        if (target) {
+          const value = target.getAttribute("data-label");
+          const isUserModel = target.classList.contains("user-model");
+          this.dropdownController.selectModel(value);
 
-        this.vscode.postMessage({
-          type: "modelSelected",
-          model: stateManager.getSelectedModel(),
-        });
+          this.vscode.postMessage({
+            type: "modelSelected",
+            model: stateManager.getSelectedModel(),
+            isUserModel
+          });
+        }
       });
-    });
+    }
+
+    // Dropdown items
+
+    const otherModels = document.getElementById("manageModels");
+    console.log("Other Models Element:", otherModels);
+    if (otherModels) {
+      otherModels.addEventListener("click", () => {
+        this.vscode.postMessage({
+          type: "showOtherProviders",
+        });
+
+        console.log("Clicked on manageModels");
+
+        this.dropdownController.closeDropdown();
+      });
+    }
   }
 
   setupMessageEvents() {

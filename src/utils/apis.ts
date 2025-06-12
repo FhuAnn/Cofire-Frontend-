@@ -2,12 +2,54 @@ import axios from "axios";
 import * as vscode from "vscode";
 
 
-export async function updateModels(model: string) {
-  const res = await axios.post("http://localhost:5000/update-model", {
-    selectedModel: model,
+export async function updateModels(model: string, apiKey: string = "", provider: string = "") {
+  let json;
+  if (!apiKey) {
+    const res = await axios.post("http://localhost:5000/update-model-system", {
+      selectedModel: model,
+      provider
+    });
+    json = res.data;
+  }
+  else {
+    const res = await axios.post("http://localhost:5000/update-model-user", {
+      selectedModel: model,
+      provider,
+      APIKey: apiKey,
+    });
+    json = res.data;
+  }
+  return json;
+}
+
+
+// AndreNguyen: 11/6/2025
+export async function checkAPIKey(provider: string, APIKey: string) {
+  console.log("check api key", provider, APIKey)
+  const res = await axios.post("http://localhost:5000/check-api-key", {
+    provider,
+    APIKey,
   });
+  console.log("checkAPIKey", res.data);
   const json = res.data;
-  return json ;
+  if (json.status === "error") {
+    return false;
+  }
+  return true;;
+}
+
+// AndreNguyen: 11/6/2025
+export async function fetchModelFromProvider(provider: string, APIKey: string) {
+  const response = await axios.post("http://localhost:5000/list-models", {
+    provider: provider,
+    APIKey: APIKey,
+  })
+  const json = response.data;
+  if (!json.success) {
+    vscode.window.showErrorMessage("Lấy danh sách mô hình thất bại: " + json.error);
+    return [];
+  }
+  return json.models;
 }
 
 export async function callManualCompletionAI(

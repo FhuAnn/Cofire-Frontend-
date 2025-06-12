@@ -6,12 +6,13 @@ import { requestPrompt } from "./function/requestPrompt";
 import { handleGotoSelection } from "./function/goToSelection";
 import { currentPanel, setCurrentPanel } from "../panels/panelState";
 import { ChatMessage, FileToSend } from "../types";
-import { updateModels } from "../utils/apis";
+import { checkAPIKey, fetchModelFromProvider, updateModels } from "../utils/apis";
 
 let currentCode: string = "";
 let currentFileName: string = "";
 let relativePath: string = "";
 export function openAIChatPanel(context: vscode.ExtensionContext) {
+  const secretStorate = context.secrets;
   const updateEditorContent = () => {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
@@ -68,11 +69,11 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
       retainContextWhenHidden: true,
     }
   );
-  
+
   panel.iconPath = {
-  light: vscode.Uri.file(path.join(context.extensionPath, 'images', 'icon.png')),
-  dark: vscode.Uri.file(path.join(context.extensionPath, 'images', 'icon.png'))
-};
+    light: vscode.Uri.file(path.join(context.extensionPath, 'images', 'icon.png')),
+    dark: vscode.Uri.file(path.join(context.extensionPath, 'images', 'icon.png'))
+  };
 
   setCurrentPanel(panel);
 
@@ -80,6 +81,75 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
 
   panel.webview.onDidReceiveMessage(async (message) => {
     switch (message.type) {
+      case "showOtherProviders":
+        // Hiển thị danh sách các nhà cung cấp mô hình AI
+        const resultProvider = await vscode.window.showQuickPick(['Gemini', 'OpenAI', 'Anthropic'], {
+          placeHolder: "Select a provider",
+          canPickMany: false
+        });
+
+        if (!resultProvider) {
+          vscode.window.showInformationMessage("No provider selected.");
+          return;
+        }
+
+        const existingKey = await secretStorate.get(resultProvider);
+        let keytoUse = existingKey;
+        if (!keytoUse) {
+          const resultAPIKey = await vscode.window.showInputBox({
+            placeHolder: "Enter API Key",
+            prompt: `Enter API Key for ${resultProvider}`,
+            password: true, // Ẩn mật khẩu
+          });
+
+          if (!resultAPIKey) {
+            vscode.window.showInformationMessage("No API Key provided.");
+            return;
+          }
+          console.log(resultProvider, resultAPIKey);
+          // check API key có hợp lệ 
+          const isValidKey = await checkAPIKey(resultProvider, resultAPIKey);
+
+          if (!isValidKey) {
+            vscode.window.showErrorMessage("Invalid API Key. Please try again.");
+            return;
+          }
+
+          secretStorate.store(resultProvider, resultAPIKey);
+          keytoUse = resultAPIKey;
+        }
+
+
+        // fetch Models from selected provider
+        const modelOptions = await fetchModelFromProvider(resultProvider, keytoUse);
+
+        if (!modelOptions || modelOptions.length === 0) {
+          vscode.window.showInformationMessage("No model lists found for the selected provider.");
+          return;
+        }
+
+        const labels = modelOptions.map((model: { label: string; }) => model.label);
+
+        // Hiển thị danh sách các mô hình AI
+        const selectedModel = await vscode.window.showQuickPick(labels, {
+          placeHolder: `Select a model from ${resultProvider}`,
+          canPickMany: false,
+        });
+        if (!selectedModel) {
+          vscode.window.showInformationMessage("No model selected.");
+          return;
+        }
+
+        // Gửi thông tin nhà cung cấp và mô hình đã chọn về phía client
+        const result = modelOptions.find((option: { value: string, label: string }) => selectedModel.includes(option.label));
+
+        // Gửi thông tin nhà cung cấp đã chọn về phía client
+        panel.webview.postMessage({
+          type: "newModelSelected",
+          modelData: result,
+        });
+
+        break;
       case "gotoSymbol":
         const { file, mention } = message;
 
@@ -127,7 +197,26 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         break;
       case "modelSelected":
         console.log("get modelSelected from aiChat", message);
-        await updateModels(message.model);
+        const isUserModel = message.isUserModel;
+
+        const model = message.model;
+        let provider: string | undefined;
+        if (model.startsWith("gemini")) { provider = "Gemini"; }
+        else if (model.startsWith("gpt")) { provider = "OpenAI"; }
+        else if (model.startsWith("claude")) { provider = "Anthropic"; }
+
+        if (!provider) {
+          vscode.window.showErrorMessage("Unknown provider for selected model.");
+          return;
+        }
+        const apikey = await secretStorate.get(provider);
+
+        if (isUserModel) {
+          await updateModels(model, apikey, provider);
+        }
+        else {
+          await updateModels(model, "", provider);
+        }
         break;
       case "gotoSelection":
         //console.log("gotoSelection", message);

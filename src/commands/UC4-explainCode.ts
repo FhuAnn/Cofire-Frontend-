@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { callExplainCodeAI } from "../utils/apis";
 
+
 export function registerExplainCodeCommand() {
   return vscode.commands.registerCommand("cofire.explainCode", async () => {
     const editor = vscode.window.activeTextEditor;
