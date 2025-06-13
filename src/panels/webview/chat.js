@@ -340,6 +340,30 @@ window.addEventListener("message", (event) => {
       chatBox.scrollTop = chatBox.scrollHeight;
       break;
 
+    case "error":
+      try {
+        const aiBlock = document.getElementById(data.loadingId);
+        if (aiBlock) {
+          const robotDiv = aiBlock.querySelector(".robot");
+          if (robotDiv) {
+            robotDiv.classList.remove("loading");
+            robotDiv.innerHTML = `🤖 AI: <span class="error">Error: ${
+              data.message || "Unknown error"
+            }</span>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+          }
+        }
+        console.error(
+          `Backend error in ${data.file || "unknown"}: ${data.message}`,
+          data.stack
+        );
+        showError(data.message || "An error occurred");
+      } catch (error) {
+        console.error("Error handling backend error:", error);
+        showError("Failed to process error message");
+      }
+      break;
+
     // Khi file được đính kèm (toàn bộ file)
     case "fileAttached": {
       console.log("File attached:", data);
@@ -592,5 +616,3 @@ toggleBtn.addEventListener("click", () => {
 });
 
 // model selection
-
-

@@ -77,6 +77,7 @@ body {
   padding: 8px;
   margin-bottom: 6px;
   outline: none;
+  word-wrap: break-word;
 }
 
 /* Focus styles for interactive elements */
@@ -112,9 +113,9 @@ body {
   transition: border 0.2s ease;
   word-break: break-word;
   resize: none;
-  min-height: 38px;
-  max-height: 300px;
-  overflow-y: hidden;
+  min-height: 50px;
+  max-height: 600px;
+  overflow-y: auto;
 }
 
 /* ========== 5. BUTTONS & CONTROLS ========== */
@@ -250,6 +251,7 @@ button {
   font-weight: 600;
   color: black;
   font-size: 15px;
+  white-space: pre-wrap;
 }
 
 .robot {
@@ -507,7 +509,7 @@ button {
   cursor: pointer;
   position: relative;
   font-size: 12px;
-  color: var(--text-light)
+  color: var(--text-light);
 }
 
 .dropdown-footer {
@@ -572,4 +574,10 @@ button {
 .textLineThough {
   text-decoration: line-through;
   color: #cecece;
+}
+
+.question-content {
+  white-space: pre-wrap; /* Đảm bảo nội dung giữ định dạng */
+  margin: 0; /* Loại bỏ margin không cần thiết */
+  padding: 0;
 }

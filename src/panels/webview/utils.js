@@ -107,7 +107,7 @@ export function dedent(str) {
   return lines.map((line) => line.slice(indentLength)).join("\n");
 }
 
-function addCopyAndGotoListeners(container,vscode) {
+function addCopyAndGotoListeners(container, vscode) {
   container.querySelectorAll(".copy-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const wrapper = btn.closest(".code-wrapper");
@@ -167,7 +167,7 @@ export function revealHtmlBlocksGradually(
 
     const block = blocks[i].cloneNode(true); // clone để giữ style/format
     targetContainer.appendChild(block);
-    addCopyAndGotoListeners(block,vscode);
+    addCopyAndGotoListeners(block, vscode);
 
     i++;
     scrollToBottom(targetContainer);

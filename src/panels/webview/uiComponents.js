@@ -15,13 +15,20 @@ export class UIComponents {
     userBlock.className = "messageBlock";
     userBlock.id = messageId;
     userBlock.tabIndex = 0;
-    userBlock.innerHTML = `
-      <div class="q">
-        🙋‍♂️ Bạn:
-        <br><br>
-        ${question}
-      </div>
-    `;
+
+    const qDiv = document.createElement("div");
+    qDiv.className = "q";
+
+    const label = document.createElement("span");
+    label.textContent = "🙋‍♂️ Bạn:\n\n";
+    qDiv.appendChild(label);
+
+    const content = document.createElement("div"); // Thay span bằng div cho linh hoạt
+    content.className = "question-content"; // Thêm class để áp dụng CSS
+    content.textContent = question;
+    qDiv.appendChild(content);
+
+    userBlock.appendChild(qDiv);
     return userBlock;
   }
 
@@ -145,8 +152,6 @@ export class UIComponents {
       currentFileDisplay.classList.remove("textLineThough");
     }
   }
-
-  
 
   updateEmptyText() {
     const chatBox = document.getElementById("chatBox");

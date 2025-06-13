@@ -1,4 +1,4 @@
-import { ChatMessage } from "../../types";
+import { ChatMessage, CustomError } from "../../types";
 import { callChatAI } from "../../utils/apis";
 import { chatHistory, addMessageToHistory } from "./chat-history";
 import * as vscode from "vscode";
@@ -10,12 +10,16 @@ export async function requestPrompt(
   const { content, attachedFiles, loadingId } = newChat;
   console.log("chatHistory", chatHistory);
   let filesSection = "";
-  if (Array.isArray(attachedFiles)) {
+  if (Array.isArray(attachedFiles) && attachedFiles.length > 0) {
     filesSection = attachedFiles
-      .map(
-        (f: any) =>
-          `File: ${f.relativePath || f.fileName}\n\`\`\`${f.code}\`\`\`\n`
-      )
+      .map((f: any) => {
+        if (!f.relativePath && !f.fileName) {
+          throw new Error(
+            "Invalid file object: missing relativePath or fileName"
+          );
+        }
+        return `File: ${f.relativePath || f.fileName}\n\`\`\`${f.code}\`\`\`\n`;
+      })
       .join("\n");
   }
   // Xử lý phần lịch sử chat trước đó
@@ -96,9 +100,15 @@ Special formatting rule for code mentions:
     );
     console.log("Summary mới:", updatedSummary);
     return aiAnswer;
-  } catch (err: any) {
-    console.error("Lỗi khi gọi API:", err);
-    panel.webview.postMessage({ reply: "Lỗi khi gọi API" });
-    return "Lỗi khi gọi API";
+  } catch (error: any) {
+    const customError: CustomError =
+      error instanceof Error ? error : new Error("Unknown error occurred");
+    const errorMessage = `Error: ${customError.message}\nFile: ${customError.file}`;
+    panel.webview.postMessage({
+      type: "error",
+      message: errorMessage,
+      loadingId,
+    });
+    throw customError;
   }
 }

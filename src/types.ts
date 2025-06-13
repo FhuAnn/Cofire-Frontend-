@@ -16,3 +16,22 @@ export interface FileToSend {
   relativePath: string;
   code: string;
 }
+
+export interface ChatAPIErrorResponse {
+  success: boolean;
+  message: string;
+  file?: string;
+  stack?: string;
+  status?: number;
+}
+
+export interface ChatAPISuccessResponse {
+  success: true;
+  data: string;
+}
+
+export interface CustomError extends Error {
+  status?: number;
+  file?: string;
+  stack?: string;
+}

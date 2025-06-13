@@ -32,6 +32,8 @@ export class MessageHandler {
       case MESSAGE_TYPES.NEW_MODEL_SELECTED:
         this.handleNewModelSelected(data);
         break;
+      case MESSAGE_TYPES.ERROR:
+        this.handleErrorCallAPI(data);
     }
   }
 
@@ -200,5 +202,28 @@ export class MessageHandler {
     } else {
       console.log(`Model "${value}" đã tồn tại, không thêm lại.`);
     }
+  }
+
+  handleErrorCallAPI(data) {
+    const { message, file, stack, loadingId } = data;
+    // Cập nhật khối AI nếu có loadingId
+    if (loadingId) {
+      const aiBlock = document.getElementById(loadingId);
+      if (aiBlock) {
+        const robotDiv = aiBlock.querySelector(".robot");
+        if (robotDiv) {
+          robotDiv.classList.remove("loading");
+          robotDiv.innerHTML = `🤖 ${stateManager.getSelectedModel()}: <span class="error">${
+            message || "Unknown error"
+          }</span>`;
+          scrollToBottom(document.getElementById("chatBox"));
+        }
+      }
+    }
+    // Ghi log chi tiết để debug
+    console.error(
+      `Backend error${file ? ` in ${file}` : ""}: ${message}`,
+      stack || ""
+    );
   }
 }

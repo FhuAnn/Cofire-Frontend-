@@ -6,13 +6,17 @@ import { requestPrompt } from "./function/requestPrompt";
 import { handleGotoSelection } from "./function/goToSelection";
 import { currentPanel, setCurrentPanel } from "../panels/panelState";
 import { ChatMessage, FileToSend } from "../types";
-import { checkAPIKey, fetchModelFromProvider, updateModels } from "../utils/apis";
+import {
+  checkAPIKey,
+  fetchModelFromProvider,
+  updateModels,
+} from "../utils/apis";
 
 let currentCode: string = "";
 let currentFileName: string = "";
 let relativePath: string = "";
 export function openAIChatPanel(context: vscode.ExtensionContext) {
-  const secretStorate = context.secrets;
+  const secretStorage = context.secrets;
   const updateEditorContent = () => {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
@@ -71,8 +75,12 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
   );
 
   panel.iconPath = {
-    light: vscode.Uri.file(path.join(context.extensionPath, 'images', 'icon.png')),
-    dark: vscode.Uri.file(path.join(context.extensionPath, 'images', 'icon.png'))
+    light: vscode.Uri.file(
+      path.join(context.extensionPath, "images", "icon.png")
+    ),
+    dark: vscode.Uri.file(
+      path.join(context.extensionPath, "images", "icon.png")
+    ),
   };
 
   setCurrentPanel(panel);
@@ -82,73 +90,185 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
   panel.webview.onDidReceiveMessage(async (message) => {
     switch (message.type) {
       case "showOtherProviders":
-        // Hiển thị danh sách các nhà cung cấp mô hình AI
-        const resultProvider = await vscode.window.showQuickPick(['Gemini', 'OpenAI', 'Anthropic'], {
-          placeHolder: "Select a provider",
-          canPickMany: false
-        });
-
-        if (!resultProvider) {
-          vscode.window.showInformationMessage("No provider selected.");
-          return;
-        }
-
-        const existingKey = await secretStorate.get(resultProvider);
-        let keytoUse = existingKey;
-        if (!keytoUse) {
-          const resultAPIKey = await vscode.window.showInputBox({
-            placeHolder: "Enter API Key",
-            prompt: `Enter API Key for ${resultProvider}`,
-            password: true, // Ẩn mật khẩu
-          });
-
-          if (!resultAPIKey) {
-            vscode.window.showInformationMessage("No API Key provided.");
-            return;
+        // Danh sách các nhà cung cấp hợp lệ
+        const validProviders = ["Gemini", "OpenAI", "Anthropic"];
+        const resultProvider = await vscode.window.showQuickPick(
+          ["Gemini", "OpenAI", "Anthropic"],
+          {
+            placeHolder: "Select a provider",
+            canPickMany: false,
           }
-          console.log(resultProvider, resultAPIKey);
-          // check API key có hợp lệ 
-          const isValidKey = await checkAPIKey(resultProvider, resultAPIKey);
+        );
+        //console.log("check result provider");
 
-          if (!isValidKey) {
-            vscode.window.showErrorMessage("Invalid API Key. Please try again.");
-            return;
+        if (!resultProvider || !validProviders.includes(resultProvider)) {
+          vscode.window.showErrorMessage(
+            "Invalid provider selected. Please choose " + validProviders
+          );
+          return;
+        }
+        // Hiển thị thông báo loading khi kiểm tra API Key và lấy danh sách mô hình
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification, // Hiển thị trong khu vực thông báo
+            title: `Preparing ${resultProvider}...`, // Tiêu đề thông báo
+            cancellable: false, // Không cho phép hủy
+          },
+          async (progress) => {
+            progress.report({ message: "Checking API Key..." });
+            const existingKey = await secretStorage.get(resultProvider);
+            let keytoUse = existingKey;
+            if (existingKey) {
+              // Nếu có API Key, hỏi xem người dùng có muốn xóa hay sử dụng lại
+              const action = await vscode.window.showQuickPick(
+                [
+                  "Use existing API Key",
+                  "Enter new API Key",
+                  "Delete existing API Key",
+                ],
+                {
+                  placeHolder: `API Key found for ${resultProvider}. What do you want to do?`,
+                  canPickMany: false,
+                }
+              );
+
+              if (!action) {
+                vscode.window.showInformationMessage("No action selected.");
+                return;
+              }
+
+              if (action === "Delete existing API Key") {
+                // Xóa API Key khỏi secretStorage
+                await secretStorage.delete(resultProvider);
+                vscode.window.showInformationMessage(
+                  `API Key for ${resultProvider} has been deleted.`
+                );
+
+                // Yêu cầu nhập API Key mới
+                const resultAPIKey = await vscode.window.showInputBox({
+                  placeHolder: "Enter API Key",
+                  prompt: `Enter API Key for ${resultProvider}`,
+                  password: true,
+                });
+
+                if (!resultAPIKey) {
+                  vscode.window.showInformationMessage("No API Key provided.");
+                  return;
+                }
+
+                // Kiểm tra API Key hợp lệ
+                const isValidKey = await checkAPIKey(
+                  resultProvider,
+                  resultAPIKey
+                );
+                if (!isValidKey) {
+                  vscode.window.showErrorMessage(
+                    "Invalid API Key. Please try again."
+                  );
+                  return;
+                }
+
+                await secretStorage.store(resultProvider, resultAPIKey);
+                keytoUse = resultAPIKey;
+              } else if (action === "Enter new API Key") {
+                // Nhập API Key mới
+                const resultAPIKey = await vscode.window.showInputBox({
+                  placeHolder: "Enter API Key",
+                  prompt: `Enter API Key for ${resultProvider}`,
+                  password: true,
+                });
+
+                if (!resultAPIKey) {
+                  vscode.window.showInformationMessage("No API Key provided.");
+                  return;
+                }
+
+                // Kiểm tra API Key hợp lệ
+                const isValidKey = await checkAPIKey(
+                  resultProvider,
+                  resultAPIKey
+                );
+                if (!isValidKey) {
+                  vscode.window.showErrorMessage(
+                    "Invalid API Key. Please try again."
+                  );
+                  return;
+                }
+
+                await secretStorage.store(resultProvider, resultAPIKey);
+                keytoUse = resultAPIKey;
+              }
+              // Nếu chọn "Use existing API Key", keytoUse vẫn là existingKey
+            } else {
+              // Không có API Key, yêu cầu nhập mới
+              const resultAPIKey = await vscode.window.showInputBox({
+                placeHolder: "Enter API Key",
+                prompt: `Enter API Key for ${resultProvider}`,
+                password: true,
+              });
+
+              if (!resultAPIKey) {
+                vscode.window.showInformationMessage("No API Key provided.");
+                return;
+              }
+              progress.report({ message: "Validating API Key..." });
+              // Kiểm tra API Key hợp lệ
+              const isValidKey = await checkAPIKey(
+                resultProvider,
+                resultAPIKey
+              );
+              if (!isValidKey) {
+                vscode.window.showErrorMessage(
+                  "Invalid API Key. Please try again."
+                );
+                return;
+              }
+
+              await secretStorage.store(resultProvider, resultAPIKey);
+              keytoUse = resultAPIKey;
+            }
+            progress.report({ message: "Fetching models..." });
+
+            // fetch Models from selected provider
+            const modelOptionsResult = await fetchModelFromProvider(
+              resultProvider,
+              keytoUse
+            );
+
+            if (!modelOptionsResult || modelOptionsResult.length === 0) {
+              vscode.window.showInformationMessage(
+                "No model lists found for the selected provider."
+              );
+              return;
+            }
+
+            const labels = modelOptionsResult.map(
+              (model: { label: string }) => model.label
+            );
+            progress.report({ message: "Ready!" });
+            // Hiển thị danh sách các mô hình AI
+            const selectedModel = await vscode.window.showQuickPick(labels, {
+              placeHolder: `Select a model from ${resultProvider}`,
+              canPickMany: false,
+            });
+            if (!selectedModel) {6
+              vscode.window.showInformationMessage("No model selected.");
+              return;
+            }
+
+            // Gửi thông tin nhà cung cấp và mô hình đã chọn về phía client
+            const result = modelOptionsResult.find(
+              (option: { value: string; label: string }) =>
+                selectedModel.includes(option.label)
+            );
+
+            // Gửi thông tin nhà cung cấp đã chọn về phía client
+            panel.webview.postMessage({
+              type: "newModelSelected",
+              modelData: result,
+            });
           }
-
-          secretStorate.store(resultProvider, resultAPIKey);
-          keytoUse = resultAPIKey;
-        }
-
-
-        // fetch Models from selected provider
-        const modelOptions = await fetchModelFromProvider(resultProvider, keytoUse);
-
-        if (!modelOptions || modelOptions.length === 0) {
-          vscode.window.showInformationMessage("No model lists found for the selected provider.");
-          return;
-        }
-
-        const labels = modelOptions.map((model: { label: string; }) => model.label);
-
-        // Hiển thị danh sách các mô hình AI
-        const selectedModel = await vscode.window.showQuickPick(labels, {
-          placeHolder: `Select a model from ${resultProvider}`,
-          canPickMany: false,
-        });
-        if (!selectedModel) {
-          vscode.window.showInformationMessage("No model selected.");
-          return;
-        }
-
-        // Gửi thông tin nhà cung cấp và mô hình đã chọn về phía client
-        const result = modelOptions.find((option: { value: string, label: string }) => selectedModel.includes(option.label));
-
-        // Gửi thông tin nhà cung cấp đã chọn về phía client
-        panel.webview.postMessage({
-          type: "newModelSelected",
-          modelData: result,
-        });
-
+        );
         break;
       case "gotoSymbol":
         const { file, mention } = message;
@@ -168,7 +288,10 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
 
           // Mở file ở bên trái (ViewColumn.One)
           const document = await vscode.workspace.openTextDocument(fileUri);
-          const editor = await vscode.window.showTextDocument(document, vscode.ViewColumn.One);
+          const editor = await vscode.window.showTextDocument(
+            document,
+            vscode.ViewColumn.One
+          );
 
           // Tìm vị trí đầu tiên của "mention"
           const text = document.getText();
@@ -177,7 +300,9 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
 
           const index = text.indexOf(mention);
           if (index === -1) {
-            vscode.window.showWarningMessage(`Không tìm thấy "${mention}" trong file ${file}`);
+            vscode.window.showWarningMessage(
+              `Không tìm thấy "${mention}" trong file ${file}`
+            );
             return;
           }
 
@@ -188,9 +313,10 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
           // Highlight và scroll đến vị trí
           editor.selection = new vscode.Selection(startPos, endPos);
           editor.revealRange(range, vscode.TextEditorRevealType.InCenter);
-
         } catch (error) {
-          vscode.window.showErrorMessage(`Lỗi khi mở file hoặc tìm "${mention}": ${error}`);
+          vscode.window.showErrorMessage(
+            `Lỗi khi mở file hoặc tìm "${mention}": ${error}`
+          );
           console.error("gotoSymbol error:", error);
         }
 
@@ -201,20 +327,25 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
 
         const model = message.model;
         let provider: string | undefined;
-        if (model.startsWith("gemini")) { provider = "Gemini"; }
-        else if (model.startsWith("gpt")) { provider = "OpenAI"; }
-        else if (model.startsWith("claude")) { provider = "Anthropic"; }
+        if (model.startsWith("gemini")) {
+          provider = "Gemini";
+        } else if (model.startsWith("gpt")) {
+          provider = "OpenAI";
+        } else if (model.startsWith("claude")) {
+          provider = "Anthropic";
+        }
 
         if (!provider) {
-          vscode.window.showErrorMessage("Unknown provider for selected model.");
+          vscode.window.showErrorMessage(
+            "Unknown provider for selected model."
+          );
           return;
         }
-        const apikey = await secretStorate.get(provider);
+        const apikey = await secretStorage.get(provider);
 
         if (isUserModel) {
           await updateModels(model, apikey, provider);
-        }
-        else {
+        } else {
           await updateModels(model, "", provider);
         }
         break;
@@ -234,7 +365,6 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
               "**/node_modules/**"
             );
             for (const fileUri of files) {
-
               const fileName = fileUri.path.split("/").pop() || fileUri.fsPath;
               const content = (
                 await vscode.workspace.fs.readFile(fileUri)
