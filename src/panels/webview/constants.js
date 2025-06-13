@@ -50,4 +50,5 @@ export const MESSAGE_TYPES = {
   GOTO_SELECTION: 'gotoSelection',
   FILES_DROPPED: 'filesDropped',
   NEW_MODEL_SELECTED: 'newModelSelected',
+  ERROR: "error"
 };

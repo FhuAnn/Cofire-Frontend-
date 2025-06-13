@@ -1,17 +1,20 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import * as vscode from "vscode";
+import { ChatAPIErrorResponse, ChatAPISuccessResponse } from "../types";
 
-
-export async function updateModels(model: string, apiKey: string = "", provider: string = "") {
+export async function updateModels(
+  model: string,
+  apiKey: string = "",
+  provider: string = ""
+) {
   let json;
   if (!apiKey) {
     const res = await axios.post("http://localhost:5000/update-model-system", {
       selectedModel: model,
-      provider
+      provider,
     });
     json = res.data;
-  }
-  else {
+  } else {
     const res = await axios.post("http://localhost:5000/update-model-user", {
       selectedModel: model,
       provider,
@@ -22,10 +25,9 @@ export async function updateModels(model: string, apiKey: string = "", provider:
   return json;
 }
 
-
 // AndreNguyen: 11/6/2025
 export async function checkAPIKey(provider: string, APIKey: string) {
-  console.log("check api key", provider, APIKey)
+  console.log("check api key", provider, APIKey);
   const res = await axios.post("http://localhost:5000/check-api-key", {
     provider,
     APIKey,
@@ -35,19 +37,27 @@ export async function checkAPIKey(provider: string, APIKey: string) {
   if (json.status === "error") {
     return false;
   }
-  return true;;
+  return true;
 }
 
 // AndreNguyen: 11/6/2025
-export async function fetchModelFromProvider(provider: string, APIKey: string) {
+export async function fetchModelFromProvider(
+  provider: string,
+  APIKey: string | undefined
+) {
+  if (!APIKey) return;
   const response = await axios.post("http://localhost:5000/list-models", {
     provider: provider,
     APIKey: APIKey,
-  })
+  });
+  console.log(response.data);
   const json = response.data;
+  console.log("resultdjs", json);
   if (!json.success) {
-    vscode.window.showErrorMessage("Lấy danh sách mô hình thất bại: " + json.error);
-    return [];
+    vscode.window.showErrorMessage(
+      "Lấy danh sách mô hình thất bại: " + json.error
+    );
+    return json;
   }
   return json.models;
 }
@@ -70,7 +80,7 @@ export async function checkBackendStatus() {
   const res = await fetch("http://localhost:5000/status");
   const json = await res.json();
 
-  return json as { status: string, error?: string };
+  return json as { status: string; error?: string };
 }
 let lastAbortController: AbortController | null = null;
 //UC2
@@ -128,14 +138,65 @@ export async function callExplainCodeAI(code: string, language: string) {
 }
 
 export async function callChatAI(userPrompt: string): Promise<string> {
-  //console.log("call api chatAI", userPrompt);
-  const response = await axios.post("http://localhost:5000/api/chat", {
-    fullPrompt: userPrompt,
-  });
+  try {
+    const response = await axios.post<
+      ChatAPIErrorResponse | ChatAPISuccessResponse
+    >(
+      "http://localhost:5000/api/chat",
+      {
+        fullPrompt: userPrompt,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 10000,
+      }
+    );
+    if (response.data.success === false) {
+      const errorData = response.data as ChatAPIErrorResponse;
+      const error = new Error(errorData.message || "Unknown API error");
+      error.message = errorData.message;
+      (error as any).file = errorData.file || "Unknown file";
+      (error as any).stack = errorData.stack || "";
+      (error as any).status = errorData.status || response.status;
+      throw error;
+    }
+    // Trả về dữ liệu nếu thành công
+    console.log("response", response.data);
+    return (response.data as ChatAPISuccessResponse).data;
+  } catch (error) {
+    // Xử lý lỗi từ axios hoặc lỗi khác
+    let customError: Error & { status?: number; file?: string };
+    if (error instanceof AxiosError) {
+      // Lỗi từ axios (mạng, timeout, hoặc phản hồi API)
+      customError = new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to call chat API"
+      );
+      customError.status = error.response?.status || 500;
+      customError.file = error.response?.data?.file || "callChatAI.ts";
+      customError.stack = error.response?.data?.stack || error.stack;
+    } else {
+      // Lỗi khác (validation hoặc lỗi runtime)
+      customError = new Error((error as Error).message || "Unexpected error");
+      customError.status = 500;
+      customError.file = "callChatAI.ts";
+      customError.stack = (error as Error).stack;
+    }
 
-  return response.data.data;
+    // Ghi log lỗi để debug
+    console.error(
+      `Chat API Error in ${customError.file}:`,
+      customError.message,
+      customError.stack
+    );
+
+    // Ném lỗi để tầng trên xử lý
+    throw customError;
+  }
 }
-
 
 export async function callAPIInlineCompletionCode(
   fullText: string,
