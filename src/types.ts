@@ -35,3 +35,22 @@ export interface CustomError extends Error {
   file?: string;
   stack?: string;
 }
+
+export interface MessageInConservation {
+  role: "user" | "ai";
+  content: string;
+  timestamp?: number;
+}
+
+export interface Conservation {
+  userId: string;
+  tile: string;
+  messages: MessageInConservation[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TemplateResponse {
+  success: boolean,
+  message: string;
+}

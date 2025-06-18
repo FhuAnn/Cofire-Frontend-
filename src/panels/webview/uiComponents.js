@@ -44,6 +44,17 @@ export class UIComponents {
     return aiBlock;
   }
 
+  createAIMessage(messageId, reply, model) {
+    const aiBlock = document.createElement("div");
+    aiBlock.className = "messageBlock ai";
+    aiBlock.id = messageId;
+    aiBlock.tabIndex = 0;
+    aiBlock.innerHTML = `
+      <div class="robot">🤖 ${model}: <i>${reply}</i></div>
+    `;
+    return aiBlock;
+  }
+
   createFileAttachElement(file, containerId) {
     const initialID = generateAttachId(file);
     const div = document.createElement("div");

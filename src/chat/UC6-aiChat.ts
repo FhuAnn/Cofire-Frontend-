@@ -7,6 +7,8 @@ import { handleGotoSelection } from "./function/goToSelection";
 import { currentPanel, setCurrentPanel } from "../panels/panelState";
 import { ChatMessage, FileToSend } from "../types";
 import {
+  callAPIGetConversationDetail,
+  callAPIGetConversationHistory,
   checkAPIKey,
   fetchModelFromProvider,
   updateModels,
@@ -251,7 +253,8 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
               placeHolder: `Select a model from ${resultProvider}`,
               canPickMany: false,
             });
-            if (!selectedModel) {6
+            if (!selectedModel) {
+              6;
               vscode.window.showInformationMessage("No model selected.");
               return;
             }
@@ -486,6 +489,41 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
           }
         }
         break;
+      }
+      case "showHistory": {
+        //const userId = await context.secrets.get("userID");
+        const userId = "123123";
+        const { conversations, message } = await callAPIGetConversationHistory(
+          userId
+        );
+        if (conversations.length === 0) {
+          vscode.window.showInformationMessage(
+            "Không có lịch sử trò chuyện nào."
+          );
+          return;
+        }
+        // Hiển thị danh sách để chọn
+        const pickItems = conversations.map((conv: any) => ({
+          label: conv.title || `Cuộc trò chuyện ${conv._id}`,
+          description: conv.updatedAt
+            ? `Cập nhật: ${new Date(conv.updatedAt).toLocaleString()}`
+            : "",
+          conversationId: conv._id,
+        }));
+        const picked = await vscode.window.showQuickPick(pickItems, {
+          placeHolder: "Chọn một cuộc trò chuyện để xem chi tiết",
+        });
+
+        if (!picked) return;
+        vscode.window.showInformationMessage(`Bạn đã chọn: ${picked.label}`);
+
+        const { messagesInConversation } = await callAPIGetConversationDetail(
+          picked.conversationId
+        );
+        panel.webview.postMessage({
+          type: "showConversationDetail",
+          messagesInConversation,
+        });
       }
       default:
         break;

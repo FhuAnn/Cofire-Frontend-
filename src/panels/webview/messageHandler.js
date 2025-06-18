@@ -34,6 +34,8 @@ export class MessageHandler {
         break;
       case MESSAGE_TYPES.ERROR:
         this.handleErrorCallAPI(data);
+      case MESSAGE_TYPES.SHOW_CONVERSATION:
+        this.handleShowConversation(data.messagesInConversation);
     }
   }
 
@@ -225,5 +227,30 @@ export class MessageHandler {
       `Backend error${file ? ` in ${file}` : ""}: ${message}`,
       stack || ""
     );
+  }
+  handleShowConversation(messages) {
+    // Xóa nội dung chat cũ (nếu muốn)
+    const chatBox = document.getElementById("chatBox");
+    chatBox.innerHTML = "";
+
+    // Render từng message
+    messages.forEach((msg) => {
+      if (msg.role === "user") {
+        const userBlock = this.uiComponents.createUserMessage(
+          msg.id,
+          msg.content
+        );
+        chatBox.appendChild(userBlock);
+      } else {
+        const aiBlock = this.uiComponents.createAIMessage(
+          msg.id,
+          msg.content,
+          msg.model
+        );
+        chatBox.appendChild(aiBlock);
+      }
+    });
+    // Cuộn xuống cuối
+    scrollToBottom(chatBox);
   }
 }

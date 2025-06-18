@@ -64,6 +64,17 @@ export class EventHandlers {
         this.chatController.toggleVisibility();
       });
     }
+
+    //Show list conversation
+    const historyBtn = document.getElementById("historyBtn");
+    if (historyBtn) {
+      historyBtn.addEventListener("click", () => {
+        console.log("History button clicked");
+        this.vscode.postMessage({
+          type: MESSAGE_TYPES.SHOW_HISTORY,
+        });
+      });
+    }
   }
 
   setupDragDropEvents() {
@@ -144,7 +155,7 @@ export class EventHandlers {
           this.vscode.postMessage({
             type: "modelSelected",
             model: stateManager.getSelectedModel(),
-            isUserModel
+            isUserModel,
           });
         }
       });

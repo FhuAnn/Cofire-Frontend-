@@ -1,6 +1,11 @@
 import axios, { AxiosError } from "axios";
 import * as vscode from "vscode";
-import { ChatAPIErrorResponse, ChatAPISuccessResponse } from "../types";
+import {
+  ChatAPIErrorResponse,
+  ChatAPISuccessResponse,
+  Conservation,
+  MessageInConservation,
+} from "../types";
 
 export async function updateModels(
   model: string,
@@ -212,4 +217,94 @@ export async function callAPIInlineCompletionCode(
     }
   );
   return response.data.data;
+}
+
+export async function callAPIGetConversationHistory(userId: string): Promise<{
+  conversations: Conservation[];
+  message?: string;
+}> {
+  const response = await axios.get(
+    `http://localhost:5000/api/v1/history/getConversationList?userId=${userId}`
+  );
+  console.log("response", response);
+
+  if (response.data.success) {
+    return {
+      conversations: response.data.data ,
+      message: response.data.message,
+    };
+  } else {
+    throw new Error(
+      response.data.message || "Failed to fetch conversation history list"
+    );
+  }
+}
+
+export async function callAPIGetConversationDetail(
+  conversationId: string
+): Promise<{
+  messagesInConversation: MessageInConservation[];
+  message?: string;
+}> {
+  const response = await axios.get(
+    `http://localhost:5000/api/v1/history/getConversationDetail?conversationId=${conversationId}`
+  );
+  if (response.data.success) {
+    console.log("response", response.data);
+    return {
+      messagesInConversation: response.data.data,
+      message: response.data.message,
+    };
+  } else {
+    throw new Error(
+      response.data.message || "Failed to fetch conversation detail"
+    );
+  }
+}
+
+export async function callAPIWriteAMessageToConversation(
+  conversationId: string,
+  userId: string,
+  role: "user" | "ai",
+  content: string
+): Promise<{
+  message?: string;
+}> {
+  const response = await axios.post(
+    `http://localhost:5000/api/v1/history/message`,
+    {
+      userId,
+      conversationId,
+      role,
+      content,
+    }
+  );
+  if (response.data.success) {
+    return {
+      message: response.data.message,
+    };
+  } else {
+    throw new Error(
+      response.data.message || "Failed to fetch store a message in conversation"
+    );
+  }
+}
+
+export async function callAPIGetFirstConversation(userId: string): Promise<{
+  message?: string;
+  firstConversation?: Conservation;
+}> {
+  const response = await axios.post(
+    `http://localhost:5000/api/v1/history/getFirstConversation?userId=${userId}`
+  );
+  if (response.data.success) {
+    return {
+      firstConversation: response.data.data,
+      message: response.data.message,
+    };
+  } else {
+    throw new Error(
+      response.data.message || "Failed to fetch first conversation"
+    );
+  }
 }

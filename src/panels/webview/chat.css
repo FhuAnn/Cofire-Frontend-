@@ -141,7 +141,8 @@ button {
 }
 
 #sendBtn:hover,
-.dropdown-toggle:hover {
+.dropdown-toggle,
+button :hover {
   background-color: var(--hover-bg);
 }
 
@@ -252,8 +253,12 @@ button {
   color: black;
   font-size: 15px;
   white-space: pre-wrap;
+  margin-left: 25px;
 }
 
+.ai {
+  margin-right: 25px;
+}
 .robot {
   font-weight: 500;
   color: #333;
@@ -580,4 +585,10 @@ button {
   white-space: pre-wrap; /* Đảm bảo nội dung giữ định dạng */
   margin: 0; /* Loại bỏ margin không cần thiết */
   padding: 0;
+}
+
+#tools {
+  display: flex;
+  align-items: end;
+  gap: 8px;
 }

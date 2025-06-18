@@ -33,8 +33,8 @@ export class ChatController {
     const isNewModel = model !== prevModel;
 
     if (isNewModel) {
-      chatBox.innerHTML = ""; 
-      this.lastUsedModel = model; 
+      chatBox.innerHTML = "";
+      this.lastUsedModel = model;
     }
 
     // Create user message

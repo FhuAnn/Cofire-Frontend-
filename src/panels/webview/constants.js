@@ -29,26 +29,28 @@ export const MARKED_OPTIONS = {
 };
 
 export const MODELS = [
-  { value: 'claude-3.5-sonnet', label: 'Claude 3.5 Sonnet' },
-  { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
-  { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash' },
-  { value: 'gpt-4.1', label: 'GPT-4.1' },
-  { value: 'gpt-4o', label: 'GPT-4o' },
-  { value: 'gpt-o3-mini', label: 'o3-mini' },
+  { value: "claude-3.5-sonnet", label: "Claude 3.5 Sonnet" },
+  { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+  { value: "gemini-1.5-flash", label: "Gemini 1.5 Flash" },
+  { value: "gpt-4.1", label: "GPT-4.1" },
+  { value: "gpt-4o", label: "GPT-4o" },
+  { value: "gpt-o3-mini", label: "o3-mini" },
 ];
 
-export const DEFAULT_MODEL = 'gemini-2.0-flash';
+export const DEFAULT_MODEL = "gemini-2.0-flash";
 
 export const MESSAGE_TYPES = {
-  UPDATE: 'update',
-  REPLY: 'reply',
-  FILE_ATTACHED: 'fileAttached',
-  SELECTION_ATTACHED: 'selectionAttached',
-  FOLDER_ATTACHED: 'folderAttached',
-  ATTACH_FILE: 'attachFile',
-  SEND_PROMPT: 'sendPromptToModel',
-  GOTO_SELECTION: 'gotoSelection',
-  FILES_DROPPED: 'filesDropped',
-  NEW_MODEL_SELECTED: 'newModelSelected',
-  ERROR: "error"
+  UPDATE: "update",
+  REPLY: "reply",
+  FILE_ATTACHED: "fileAttached",
+  SELECTION_ATTACHED: "selectionAttached",
+  FOLDER_ATTACHED: "folderAttached",
+  ATTACH_FILE: "attachFile",
+  SEND_PROMPT: "sendPromptToModel",
+  GOTO_SELECTION: "gotoSelection",
+  FILES_DROPPED: "filesDropped",
+  NEW_MODEL_SELECTED: "newModelSelected",
+  ERROR: "error",
+  SHOW_HISTORY: "showHistory",
+  SHOW_CONVERSATION: "showConversationDetail",
 };
