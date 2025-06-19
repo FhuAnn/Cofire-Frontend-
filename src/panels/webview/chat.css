@@ -29,7 +29,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 95vh;
-  gap: 16px;
+  gap: 8px;
 }
 
 /* Empty state text */
@@ -254,6 +254,7 @@ button :hover {
   font-size: 15px;
   white-space: pre-wrap;
   margin-left: 25px;
+  background-color: #dff2ff;
 }
 
 .ai {
@@ -589,6 +590,7 @@ button :hover {
 
 #tools {
   display: flex;
-  align-items: end;
+  align-items: center;
+  justify-content: end;
   gap: 8px;
 }

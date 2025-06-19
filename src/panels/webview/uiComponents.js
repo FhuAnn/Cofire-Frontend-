@@ -49,9 +49,22 @@ export class UIComponents {
     aiBlock.className = "messageBlock ai";
     aiBlock.id = messageId;
     aiBlock.tabIndex = 0;
-    aiBlock.innerHTML = `
-      <div class="robot">🤖 ${model}: <i>${reply}</i></div>
-    `;
+    // Header: icon, model, thời gian
+    const headerDiv = document.createElement("div");
+    headerDiv.className = "robot";
+    headerDiv.innerHTML = `🤖 ${
+      model ? model + ":" : ""
+    } <span class="ai-time">${
+      timestamp ? new Date(timestamp).toLocaleString() : ""
+    }</span>`;
+
+    // Nội dung markdown
+    const mdContainer = document.createElement("div");
+    mdContainer.className = "markdown-content";
+    markdownRenderer.renderMarkdown(reply, mdContainer);
+
+    aiBlock.appendChild(headerDiv);
+    aiBlock.appendChild(mdContainer);
     return aiBlock;
   }
 
@@ -343,6 +356,28 @@ export class UIComponents {
         return "linear-gradient(135deg, #4caf50, #388e3c)";
       default:
         return "linear-gradient(135deg, #2196f3, #1976d2)";
+    }
+  }
+
+  resetChatBox() {
+    const chatBox = document.getElementById("chatBox");
+    const questionInput = document.getElementById("question");
+    const addFilesContainer = document.getElementById("addFiles");
+    if (chatBox) {
+      Array.from(chatBox.children).forEach((child) => {
+        if (child.id !== "emptyText") {
+          chatBox.removeChild(child);
+        }
+      });
+      // Đảm bảo emptyText hiển thị
+      const emptyText = document.getElementById("emptyText");
+      if (emptyText) emptyText.style.display = "block";
+    }
+    if (questionInput) {
+      questionInput.value = "";
+    }
+    if (addFilesContainer) {
+      addFilesContainer.innerHTML = "";
     }
   }
 }

@@ -99,7 +99,6 @@ export async function callGetContinousCodeAISuggestion(
   const controller = new AbortController();
   lastAbortController = controller;
   try {
-    console.log("bien", context, language);
     const response = await fetch("http://localhost:5000/suggest-typing", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -230,7 +229,7 @@ export async function callAPIGetConversationHistory(userId: string): Promise<{
 
   if (response.data.success) {
     return {
-      conversations: response.data.data ,
+      conversations: response.data.data,
       message: response.data.message,
     };
   } else {
@@ -262,26 +261,32 @@ export async function callAPIGetConversationDetail(
   }
 }
 
-export async function callAPIWriteAMessageToConversation(
-  conversationId: string,
-  userId: string,
-  role: "user" | "ai",
-  content: string
+export async function callAPIWriteMessagePairToConversation(
+  message: MessageInConservation,
+  userId?: string,
+  conversationId?: string,
+  summary?: string,
+  model?: string
 ): Promise<{
   message?: string;
+  newOrUpdateConversation?: Conservation;
 }> {
+  console.log("call callAPIWriteMessagePairToConversation",message, userId, conversationId, summary);
   const response = await axios.post(
     `http://localhost:5000/api/v1/history/message`,
     {
       userId,
       conversationId,
-      role,
-      content,
+      role: message.role,
+      content: message.content,
+      summary,
+      model
     }
   );
   if (response.data.success) {
     return {
       message: response.data.message,
+      newOrUpdateConversation: response.data.data,
     };
   } else {
     throw new Error(
@@ -306,5 +311,72 @@ export async function callAPIGetFirstConversation(userId: string): Promise<{
     throw new Error(
       response.data.message || "Failed to fetch first conversation"
     );
+  }
+}
+
+export async function callAPIGetSummary(
+  prevSummary: string,
+  userMessage: MessageInConservation,
+  aiMessage: MessageInConservation
+): Promise<string> {
+  try {
+    const response = await axios.post<
+      ChatAPIErrorResponse | ChatAPISuccessResponse
+    >(
+      "http://localhost:5000/api/summary",
+      {
+        prevSummary,
+        userMessage,
+        aiMessage,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 10000,
+      }
+    );
+    if (response.data.success === false) {
+      const errorData = response.data as ChatAPIErrorResponse;
+      const error = new Error(errorData.message || "Unknown API error");
+      error.message = errorData.message;
+      (error as any).file = errorData.file || "Unknown file";
+      (error as any).stack = errorData.stack || "";
+      (error as any).status = errorData.status || response.status;
+      throw error;
+    }
+    // Trả về dữ liệu nếu thành công
+    console.log("response", response.data);
+    return (response.data as ChatAPISuccessResponse).data;
+  } catch (error) {
+    // Xử lý lỗi từ axios hoặc lỗi khác
+    let customError: Error & { status?: number; file?: string };
+    if (error instanceof AxiosError) {
+      // Lỗi từ axios (mạng, timeout, hoặc phản hồi API)
+      customError = new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to call chat API"
+      );
+      customError.status = error.response?.status || 500;
+      customError.file = error.response?.data?.file || "callChatAI.ts";
+      customError.stack = error.response?.data?.stack || error.stack;
+    } else {
+      // Lỗi khác (validation hoặc lỗi runtime)
+      customError = new Error((error as Error).message || "Unexpected error");
+      customError.status = 500;
+      customError.file = "callChatAI.ts";
+      customError.stack = (error as Error).stack;
+    }
+
+    // Ghi log lỗi để debug
+    console.error(
+      `Chat API Error in ${customError.file}:`,
+      customError.message,
+      customError.stack
+    );
+
+    // Ném lỗi để tầng trên xử lý
+    throw customError;
   }
 }

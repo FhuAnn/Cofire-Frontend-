@@ -35,7 +35,7 @@ export class MessageHandler {
       case MESSAGE_TYPES.ERROR:
         this.handleErrorCallAPI(data);
       case MESSAGE_TYPES.SHOW_CONVERSATION:
-        this.handleShowConversation(data.messagesInConversation);
+        this.handleShowConversation(data);
     }
   }
 
@@ -228,10 +228,13 @@ export class MessageHandler {
       stack || ""
     );
   }
-  handleShowConversation(messages) {
+  handleShowConversation(data) {
+    const { messagesInConversation: messages, conversationId } = data;
     // Xóa nội dung chat cũ (nếu muốn)
     const chatBox = document.getElementById("chatBox");
     chatBox.innerHTML = "";
+
+    sessionStorage.setItem("conversationId", conversationId);
 
     // Render từng message
     messages.forEach((msg) => {

@@ -1,16 +1,3 @@
-export interface ChatMessage {
-  loadingId?: string;
-  role: "user" | "ai";
-  content: string | any;
-  attachedFiles?: FileToSend[];
-}
-
-export interface ChatHistory {
-  chatId: string;
-  messages: ChatMessage[];
-  summary?: string;
-}
-
 export interface FileToSend {
   fileName: string;
   relativePath: string;
@@ -40,17 +27,22 @@ export interface MessageInConservation {
   role: "user" | "ai";
   content: string;
   timestamp?: number;
+  attachedFiles?: FileToSend[];
+  loadingId?: string;
+  model?: string; 
 }
 
 export interface Conservation {
-  userId: string;
+  _id?: string;
+  userId?: string;
   tile: string;
+  summary: string;
   messages: MessageInConservation[];
   createdAt: string;
   updatedAt: string;
 }
 
 export interface TemplateResponse {
-  success: boolean,
+  success: boolean;
   message: string;
 }

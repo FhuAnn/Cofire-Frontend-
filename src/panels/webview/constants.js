@@ -53,4 +53,5 @@ export const MESSAGE_TYPES = {
   ERROR: "error",
   SHOW_HISTORY: "showHistory",
   SHOW_CONVERSATION: "showConversationDetail",
+  NEW_CHAT: "newChat",
 };

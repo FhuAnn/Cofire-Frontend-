@@ -75,6 +75,18 @@ export class EventHandlers {
         });
       });
     }
+
+     //Create empty chat / new chat
+    const newChatBtn = document.getElementById("newChatBtn");
+    if (newChatBtn) {
+      newChatBtn.addEventListener("click", () => {
+        console.log("New chat button clicked");
+        this.uiComponents.resetChatBox();
+        this.vscode.postMessage({
+          type: MESSAGE_TYPES.NEW_CHAT,
+        });
+      });
+    }
   }
 
   setupDragDropEvents() {

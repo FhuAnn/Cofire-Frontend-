@@ -69,6 +69,7 @@ export class ChatController {
       prompt: question,
       files: filesToSend,
       loadingId,
+      model
     });
 
     // Reset input and attached files

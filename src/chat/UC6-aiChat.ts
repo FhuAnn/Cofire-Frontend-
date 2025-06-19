@@ -5,7 +5,8 @@ import { getChatHtml } from "../panels/chatPanel";
 import { requestPrompt } from "./function/requestPrompt";
 import { handleGotoSelection } from "./function/goToSelection";
 import { currentPanel, setCurrentPanel } from "../panels/panelState";
-import { ChatMessage, FileToSend } from "../types";
+import { FileToSend, MessageInConservation } from "../types";
+import { conversationController } from "./function/ConversationController";
 import {
   callAPIGetConversationDetail,
   callAPIGetConversationHistory,
@@ -357,7 +358,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         await handleGotoSelection(message);
         break;
       case "sendPromptToModel": {
-        console.log("sendPromptToModel", message);
+        //console.log("sendPromptToModel", message);
         let filesToSend: FileToSend[] = [];
 
         for (const f of message.files) {
@@ -390,14 +391,14 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         }
         console.log("Đoạn chat hiện tại chuẩn bị", filesToSend);
         // Lấy nội dung của file hiện tại
-        const newChatToSend: ChatMessage = {
+        const newChatToSend: MessageInConservation = {
           role: "user",
           content: message.prompt,
           attachedFiles: filesToSend,
           loadingId: message.loadingId,
         };
         // await requestPrompt(newChatToSend, panel);
-        await requestPrompt(newChatToSend, panel);
+        await requestPrompt(newChatToSend, panel, message.model);
         break;
       }
       case "attachFile": {
@@ -492,6 +493,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
       }
       case "showHistory": {
         //const userId = await context.secrets.get("userID");
+
         const userId = "123123";
         const { conversations, message } = await callAPIGetConversationHistory(
           userId
@@ -517,13 +519,28 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         if (!picked) return;
         vscode.window.showInformationMessage(`Bạn đã chọn: ${picked.label}`);
 
+        //await context.secrets.store("cofire.currentConversationId", picked.conversationId);
+
         const { messagesInConversation } = await callAPIGetConversationDetail(
           picked.conversationId
         );
+        const pickedConversation = conversations.find(
+          (conv: any) => conv._id === picked.conversationId
+        );
+        if (pickedConversation)
+          conversationController.setConversation(pickedConversation);
+
         panel.webview.postMessage({
           type: "showConversationDetail",
+          conversationId: picked.conversationId,
           messagesInConversation,
         });
+        break;
+      }
+      case "newChat": {
+        //const userID = await context.secrets.get("userID");
+        conversationController.initializeNewConversation("123123");
+        break;
       }
       default:
         break;

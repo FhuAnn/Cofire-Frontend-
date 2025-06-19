@@ -1,14 +1,13 @@
-import { ChatMessage, CustomError } from "../../types";
-import { callChatAI } from "../../utils/apis";
-import { chatHistory, addMessageToHistory } from "./chat-history";
 import * as vscode from "vscode";
-import { summarizeChatHistory } from "./summarize-chat-history";
+import { CustomError, MessageInConservation } from "../../types";
+import { conversationController } from "./ConversationController.js";
+import { callChatAI } from "../../utils/apis";
 export async function requestPrompt(
-  newChat: ChatMessage,
-  panel: vscode.WebviewPanel
+  newChat: MessageInConservation,
+  panel: vscode.WebviewPanel,
+  modelAI: string
 ): Promise<string> {
   const { content, attachedFiles, loadingId } = newChat;
-  console.log("chatHistory", chatHistory);
   let filesSection = "";
   if (Array.isArray(attachedFiles) && attachedFiles.length > 0) {
     filesSection = attachedFiles
@@ -25,14 +24,15 @@ export async function requestPrompt(
   // Xử lý phần lịch sử chat trước đó
 
   let historySection = "";
-  if (chatHistory.summary) {
-    historySection += `Summary: ${chatHistory.summary}\n`;
+  if (conversationController.getSummary()) {
+    historySection += `Summary: ${conversationController.getSummary()}\n`;
   }
-
-  if (Array.isArray(chatHistory.messages) && chatHistory.messages.length > 0) {
-    // Lấy hết (hoặc   tối đa N tin gần nhất,
+  const messages = conversationController.getMessages();
+  if (Array.isArray(messages) && messages.length > 0) {
+    // Lấy hết (hoặctối đa N tin gần nhất,
     // nhưng do logic clearOldMessages, chỉ còn 2 tin)
-    const recent = chatHistory.messages
+    const recent = conversationController
+      .getMessages()
       .slice(-2)
       .map((msg) => (msg.role === "user" ? "User: " : "AI: ") + msg.content)
       .join("\n");
@@ -74,31 +74,24 @@ Special formatting rule for code mentions:
     // 2. Gọi AI chính để lấy câu trả lời
     const aiAnswer = await callChatAI(fullPrompt);
     panel.webview.postMessage({ type: "reply", reply: aiAnswer, loadingId });
-    // 3. Thêm tin nhắn user vào history
-    const newUserChat: ChatMessage = {
+    // 3. Thêm tin nhắn user và AI vào history
+    const newUserChat: MessageInConservation = {
       role: "user",
       content: content,
       attachedFiles: attachedFiles,
     };
-    addMessageToHistory(newUserChat);
-    console.log("Đã thêm user vào chatHistory");
-    // 4. Thêm tin nhắn AI vào history
-
-    const newAiChat: ChatMessage = {
+    const newAiChat: MessageInConservation = {
       role: "ai",
       content: aiAnswer,
+      model: modelAI,
     };
-    addMessageToHistory(newAiChat);
+    conversationController.addMessagePairToHistory(newUserChat, newAiChat);
 
-    // 5. Gọi hàm tóm tắt (nếu cần) và cập nhật summary mới
+    // 4. Gọi hàm tóm tắt (nếu cần) và cập nhật summary mới
     //    Lấy summary hiện tại trước khi gọi:
-    const prevSummary = chatHistory.summary;
-    const updatedSummary = await summarizeChatHistory(
-      newUserChat,
-      newAiChat,
-      prevSummary
-    );
-    console.log("Summary mới:", updatedSummary);
+    const newSummary = conversationController.getSummary();
+    console.log("Summary mới:", newSummary);
+
     return aiAnswer;
   } catch (error: any) {
     const customError: CustomError =
