@@ -23,21 +23,21 @@ export interface CustomError extends Error {
   stack?: string;
 }
 
-export interface MessageInConservation {
+export interface MessageInConversation {
   role: "user" | "ai";
   content: string;
   timestamp?: number;
   attachedFiles?: FileToSend[];
   loadingId?: string;
-  model?: string; 
+  model?: string;
 }
 
-export interface Conservation {
+export interface Conversation {
   _id?: string;
   userId?: string;
   tile: string;
   summary: string;
-  messages: MessageInConservation[];
+  messages: MessageInConversation[];
   createdAt: string;
   updatedAt: string;
 }

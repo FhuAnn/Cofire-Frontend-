@@ -5,9 +5,11 @@ import { getChatHtml } from "../panels/chatPanel";
 import { requestPrompt } from "./function/requestPrompt";
 import { handleGotoSelection } from "./function/goToSelection";
 import { currentPanel, setCurrentPanel } from "../panels/panelState";
-import { FileToSend, MessageInConservation } from "../types";
+import { FileToSend, MessageInConversation } from "../types";
 import { conversationController } from "./function/ConversationController";
 import {
+  callAPICheckAndGetLoginStatus,
+  callAPIDeleteConversation,
   callAPIGetConversationDetail,
   callAPIGetConversationHistory,
   checkAPIKey,
@@ -18,7 +20,8 @@ import {
 let currentCode: string = "";
 let currentFileName: string = "";
 let relativePath: string = "";
-export function openAIChatPanel(context: vscode.ExtensionContext) {
+
+export async function openAIChatPanel(context: vscode.ExtensionContext) {
   const secretStorage = context.secrets;
   const updateEditorContent = () => {
     const editor = vscode.window.activeTextEditor;
@@ -89,6 +92,18 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
   setCurrentPanel(panel);
 
   panel.webview.html = getChatHtml(panel, context);
+
+  //Check login status
+  const userId = await context.secrets.get("userId");
+  if (userId) {
+    panel.webview.postMessage({
+      type: "loginSuccess",
+    });
+  } else {
+    panel.webview.postMessage({
+      type: "notLoggedInYest",
+    });
+  }
 
   panel.webview.onDidReceiveMessage(async (message) => {
     switch (message.type) {
@@ -391,7 +406,7 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         }
         console.log("Đoạn chat hiện tại chuẩn bị", filesToSend);
         // Lấy nội dung của file hiện tại
-        const newChatToSend: MessageInConservation = {
+        const newChatToSend: MessageInConversation = {
           role: "user",
           content: message.prompt,
           attachedFiles: filesToSend,
@@ -517,31 +532,79 @@ export function openAIChatPanel(context: vscode.ExtensionContext) {
         });
 
         if (!picked) return;
-        vscode.window.showInformationMessage(`Bạn đã chọn: ${picked.label}`);
 
-        //await context.secrets.store("cofire.currentConversationId", picked.conversationId);
-
-        const { messagesInConversation } = await callAPIGetConversationDetail(
-          picked.conversationId
+        // Hiển thị lựa chọn tiếp theo
+        const action = await vscode.window.showQuickPick(
+          [
+            { label: "👁 Xem cuộc trò chuyện", action: "view" },
+            { label: "🗑 Xóa cuộc trò chuyện này", action: "delete" },
+          ],
+          { placeHolder: `Bạn muốn làm gì với "${picked.label}"?` }
         );
-        const pickedConversation = conversations.find(
-          (conv: any) => conv._id === picked.conversationId
-        );
-        if (pickedConversation)
-          conversationController.setConversation(pickedConversation);
 
-        panel.webview.postMessage({
-          type: "showConversationDetail",
-          conversationId: picked.conversationId,
-          messagesInConversation,
-        });
+        if (!action) return;
+
+        if (action.action === "delete") {
+          await callAPIDeleteConversation(picked.conversationId);
+          vscode.window.showInformationMessage(
+            `Deleted conversation-${picked.conversationId}`
+          );
+
+          conversationController.initializeNewConversation();
+          const userId = await context.secrets.get("userId");
+          if (userId) conversationController.setUserId(userId);
+          panel.webview.postMessage({
+            type: "deleteConversation",
+          });
+        } else if (action.action === "view") {
+          const { messagesInConversation } = await callAPIGetConversationDetail(
+            picked.conversationId
+          );
+          const pickedConversation = conversations.find(
+            (conv: any) => conv._id === picked.conversationId
+          );
+          if (pickedConversation)
+            conversationController.setConversation(pickedConversation);
+
+          panel.webview.postMessage({
+            type: "showConversationDetail",
+            conversationId: picked.conversationId,
+            messagesInConversation,
+          });
+        }
+
         break;
       }
       case "newChat": {
         //const userID = await context.secrets.get("userID");
-        conversationController.initializeNewConversation("123123");
+        conversationController.initializeNewConversation();
+        const userId = await context.secrets.get("userId");
+        if (userId) conversationController.setUserId(userId);
         break;
       }
+      case "github-login":
+        const githubAuthUrl = "http://localhost:5000/api/v1/login/auth/github";
+        vscode.env.openExternal(vscode.Uri.parse(githubAuthUrl));
+        panel.webview.postMessage({
+          type: "showProcessLogin",
+        });
+        break;
+      case "fetchLoginStatus":
+        const { success, userId } = await callAPICheckAndGetLoginStatus();
+        if (success) {
+          await secretStorage.store("userId", userId);
+          conversationController.setUserId(userId);
+          vscode.window.showInformationMessage("Login successfully!");
+          panel.webview.postMessage({
+            type: "loginSuccess",
+          });
+        } else {
+          vscode.window.showInformationMessage("Authentication Failed!");
+          panel.webview.postMessage({
+            type: "notLoggedInYest",
+          });
+        }
+        break;
       default:
         break;
     }

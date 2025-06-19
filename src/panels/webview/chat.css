@@ -30,6 +30,7 @@ body {
   flex-direction: column;
   height: 95vh;
   gap: 8px;
+  display: none;
 }
 
 /* Empty state text */
@@ -593,4 +594,27 @@ button :hover {
   align-items: center;
   justify-content: end;
   gap: 8px;
+}
+
+#githubOAuthModal,#githubOAuthWaitingModal {
+  display: flex;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  justify-content: center;
+}
+
+#githubLoginBtn {
+  background: #24292f;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
 }

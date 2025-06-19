@@ -3,8 +3,8 @@ import * as vscode from "vscode";
 import {
   ChatAPIErrorResponse,
   ChatAPISuccessResponse,
-  Conservation,
-  MessageInConservation,
+  Conversation,
+  MessageInConversation,
 } from "../types";
 
 export async function updateModels(
@@ -219,7 +219,7 @@ export async function callAPIInlineCompletionCode(
 }
 
 export async function callAPIGetConversationHistory(userId: string): Promise<{
-  conversations: Conservation[];
+  conversations: Conversation[];
   message?: string;
 }> {
   const response = await axios.get(
@@ -242,7 +242,7 @@ export async function callAPIGetConversationHistory(userId: string): Promise<{
 export async function callAPIGetConversationDetail(
   conversationId: string
 ): Promise<{
-  messagesInConversation: MessageInConservation[];
+  messagesInConversation: MessageInConversation[];
   message?: string;
 }> {
   const response = await axios.get(
@@ -262,62 +262,101 @@ export async function callAPIGetConversationDetail(
 }
 
 export async function callAPIWriteMessagePairToConversation(
-  message: MessageInConservation,
+  message: MessageInConversation,
   userId?: string,
   conversationId?: string,
   summary?: string,
   model?: string
 ): Promise<{
   message?: string;
-  newOrUpdateConversation?: Conservation;
+  newOrUpdateConversation?: Conversation;
 }> {
-  console.log("call callAPIWriteMessagePairToConversation",message, userId, conversationId, summary);
-  const response = await axios.post(
-    `http://localhost:5000/api/v1/history/message`,
-    {
-      userId,
-      conversationId,
-      role: message.role,
-      content: message.content,
-      summary,
-      model
-    }
-  );
-  if (response.data.success) {
-    return {
-      message: response.data.message,
-      newOrUpdateConversation: response.data.data,
-    };
-  } else {
-    throw new Error(
-      response.data.message || "Failed to fetch store a message in conversation"
+  console.log("callđssdsds", message, userId, conversationId, summary);
+  try {
+    const response = await axios.post(
+      `http://localhost:5000/api/v1/history/message`,
+      {
+        userId,
+        conversationId,
+        role: message.role,
+        content: message.content,
+        summary,
+        model,
+      }
     );
+    if (response.data.success) {
+      return {
+        message: response.data.message,
+        newOrUpdateConversation: response.data.data,
+      };
+    } else {
+      throw new Error(
+        response.data.message ||
+          "Failed to fetch store a message in conversation"
+      );
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      console.error(
+        "Error in callAPIWriteMessagePairToConversation:",
+        error.response.data
+      );
+      throw new Error(
+        error.response.data?.message ||
+          "Failed to write message pair to conversation"
+      );
+    } else {
+      console.error("Error in callAPIWriteMessagePairToConversation:", error);
+      throw new Error(
+        (error as Error).message ||
+          "Failed to write message pair to conversation"
+      );
+    }
   }
 }
 
 export async function callAPIGetFirstConversation(userId: string): Promise<{
   message?: string;
-  firstConversation?: Conservation;
+  firstConversation?: Conversation;
 }> {
-  const response = await axios.post(
-    `http://localhost:5000/api/v1/history/getFirstConversation?userId=${userId}`
-  );
-  if (response.data.success) {
-    return {
-      firstConversation: response.data.data,
-      message: response.data.message,
-    };
-  } else {
-    throw new Error(
-      response.data.message || "Failed to fetch first conversation"
+  try {
+    const response = await axios.post(
+      `http://localhost:5000/api/v1/history/getFirstConversation?userId=${userId}`
     );
+    if (response.data.success) {
+      return {
+        firstConversation: response.data.data,
+        message: response.data.message,
+      };
+    } else {
+      throw new Error(
+        response.data.message || "Failed to fetch first conversation"
+      );
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+      console.error(
+        "Error in callAPIWriteMessagePairToConversation:",
+        error.response.data
+      );
+      throw new Error(
+        error.response.data?.message ||
+          "Failed to write message pair to conversation"
+      );
+    } else {
+      console.error("Error in callAPIWriteMessagePairToConversation:", error);
+      throw new Error(
+        (error as Error).message ||
+          "Failed to write message pair to conversation"
+      );
+    }
   }
 }
 
 export async function callAPIGetSummary(
   prevSummary: string,
-  userMessage: MessageInConservation,
-  aiMessage: MessageInConservation
+  userMessage: MessageInConversation,
+  aiMessage: MessageInConversation
 ): Promise<string> {
   try {
     const response = await axios.post<
@@ -378,5 +417,39 @@ export async function callAPIGetSummary(
 
     // Ném lỗi để tầng trên xử lý
     throw customError;
+  }
+}
+
+export async function callAPIDeleteConversation(
+  conversationId: string
+): Promise<{ message?: string; success: boolean }> {
+  const response = await axios.post(
+    `http://localhost:5000/api/v1/history/deleteConversation?conversationId=${conversationId}`
+  );
+  if (response.data.success) {
+    return {
+      message: response.data.message,
+      success: true,
+    };
+  } else {
+    throw new Error(response.data.message || "Failed to delete conversation");
+  }
+}
+
+export async function callAPICheckAndGetLoginStatus() {
+  try {
+    console.log("fetching login status...");
+    const res = await axios.get("http://localhost:5000/api/v1/login/user", {
+      withCredentials: true,
+    });
+    if (res.data.success) {
+      return { success: true, userId: res.data.userInfo.id };
+    } else {
+      // Nếu không đăng nhập, trả về false
+      return { succees: false, userId: null };
+    }
+  } catch (error) {
+    console.error("Error checking login status:", error);
+    return { success: false, userID: null };
   }
 }

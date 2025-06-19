@@ -54,4 +54,11 @@ export const MESSAGE_TYPES = {
   SHOW_HISTORY: "showHistory",
   SHOW_CONVERSATION: "showConversationDetail",
   NEW_CHAT: "newChat",
+  DELETE_CONVERSATION: "deleteConversation",
+  GITHUB_LOGIN: "github-login",
+  LOGIN_SUCCESS: "loginSuccess",
+  NOT_LOGGED_IN_YET: "notLoggedInYest",
+  CANCEL_LOGIC_PROCESS: "cancelLoginProcess",
+  SHOW_LOGIN_PROCESS: "showProcessLogin",
+  CHECK_LOGIN_STATUS: "fetchLoginStatus",
 };

@@ -76,7 +76,7 @@ export class EventHandlers {
       });
     }
 
-     //Create empty chat / new chat
+    //Create empty chat / new chat
     const newChatBtn = document.getElementById("newChatBtn");
     if (newChatBtn) {
       newChatBtn.addEventListener("click", () => {
@@ -85,6 +85,24 @@ export class EventHandlers {
         this.vscode.postMessage({
           type: MESSAGE_TYPES.NEW_CHAT,
         });
+      });
+    }
+
+    //Click button Github OAuth
+    const githubLoginBtn = document.getElementById("githubLoginBtn");
+    if (githubLoginBtn) {
+      githubLoginBtn.addEventListener("click", () => {
+        this.vscode.postMessage({
+          type: MESSAGE_TYPES.GITHUB_LOGIN,
+        });
+      });
+    }
+
+    //Click button cancel login process
+    const cancelLoginBtn = document.getElementById("cancelLoginProcessBtn");
+    if(cancelLoginBtn) {
+      cancelLoginBtn.addEventListener("click", () => {
+        this.messageHandler.handleCancelLoginProcess()
       });
     }
   }

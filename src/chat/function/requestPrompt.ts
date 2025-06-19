@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
-import { CustomError, MessageInConservation } from "../../types";
+import { CustomError, MessageInConversation } from "../../types";
 import { conversationController } from "./ConversationController.js";
 import { callChatAI } from "../../utils/apis";
 export async function requestPrompt(
-  newChat: MessageInConservation,
+  newChat: MessageInConversation,
   panel: vscode.WebviewPanel,
   modelAI: string
 ): Promise<string> {
@@ -75,12 +75,12 @@ Special formatting rule for code mentions:
     const aiAnswer = await callChatAI(fullPrompt);
     panel.webview.postMessage({ type: "reply", reply: aiAnswer, loadingId });
     // 3. Thêm tin nhắn user và AI vào history
-    const newUserChat: MessageInConservation = {
+    const newUserChat: MessageInConversation = {
       role: "user",
       content: content,
       attachedFiles: attachedFiles,
     };
-    const newAiChat: MessageInConservation = {
+    const newAiChat: MessageInConversation = {
       role: "ai",
       content: aiAnswer,
       model: modelAI,

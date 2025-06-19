@@ -55,9 +55,7 @@
             </svg>
           </div>
         </button>
-        <button id="newChatBtn">
-          NewChat
-        </button>
+        <button id="newChatBtn">NewChat</button>
       </section>
       <section id="chatWrapper">
         <section id="chatBox">
@@ -120,6 +118,88 @@
         </div>
       </section>
     </main>
+    <div id="githubOAuthModal">
+      <div
+        style="
+          background: #222;
+          color: #fff;
+          padding: 32px 24px;
+          border-radius: 12px;
+          min-width: 320px;
+          text-align: center;
+        "
+      >
+        <img
+          src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+          alt="GitHub"
+          width="48"
+          style="margin-bottom: 16px"
+        />
+        <h2 style="margin-bottom: 16px">Đăng nhập với GitHub</h2>
+        <button id="githubLoginBtn">Đăng nhập với GitHub</button>
+      </div>
+    </div>
+    <div id="githubOAuthWaitingModal" style="display: none">
+      <div
+        style="
+          background: #222;
+          color: #fff;
+          padding: 32px 24px;
+          border-radius: 12px;
+          min-width: 320px;
+          text-align: center;
+        "
+      >
+        <img
+          src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+          alt="GitHub"
+          width="48"
+          style="margin-bottom: 16px"
+        />
+        <h2 style="margin-bottom: 16px">Waiting for login confirmation...</h2>
+        <div style="margin-bottom: 12px">
+          Please complete the login process in your browser.<br />
+          The page will automatically update once you have successfully logged in.
+        </div>
+        <div class="loader" style="margin: 16px auto">
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <circle
+              cx="20"
+              cy="20"
+              r="16"
+              stroke="#fff"
+              stroke-width="4"
+              fill="none"
+              opacity="0.2"
+            />
+            <circle
+              cx="20"
+              cy="20"
+              r="16"
+              stroke="#fff"
+              stroke-width="4"
+              fill="none"
+              stroke-linecap="round"
+              stroke-dasharray="100"
+              stroke-dashoffset="60"
+            >
+              <animateTransform
+                attributeName="transform"
+                type="rotate"
+                from="0 20 20"
+                to="360 20 20"
+                dur="1s"
+                repeatCount="indefinite"
+              />
+            </circle>
+          </svg>
+        </div>
+        <div style="font-size: 12px; color: #aaa">
+          If you encounter any issues, please try again in a few seconds.
+          <button id="cancelLoginProcessBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
   </body>
   <script type="module" src="{{scriptUri}}"></script>
 </html>

@@ -3,7 +3,8 @@
 import { createIconElement, generateAttachId } from "./utils.js";
 import { stateManager } from "./stateManager.js";
 import { MESSAGE_TYPES } from "./constants.js";
-
+import { markdownRenderer } from "./markdownRenderer.js";
+import { revealHtmlBlocksGradually, scrollToBottom } from "./utils.js";
 export class UIComponents {
   constructor(vscode) {
     this.vscode = vscode;
@@ -11,6 +12,7 @@ export class UIComponents {
   }
 
   createUserMessage(messageId, question) {
+    console.log(messageId, question);
     const userBlock = document.createElement("div");
     userBlock.className = "messageBlock";
     userBlock.id = messageId;
@@ -44,11 +46,12 @@ export class UIComponents {
     return aiBlock;
   }
 
-  createAIMessage(messageId, reply, model) {
+  createAIMessage(messageId, reply, model, timestamp) {
     const aiBlock = document.createElement("div");
     aiBlock.className = "messageBlock ai";
     aiBlock.id = messageId;
     aiBlock.tabIndex = 0;
+
     // Header: icon, model, thời gian
     const headerDiv = document.createElement("div");
     headerDiv.className = "robot";
@@ -58,13 +61,18 @@ export class UIComponents {
       timestamp ? new Date(timestamp).toLocaleString() : ""
     }</span>`;
 
-    // Nội dung markdown
+    // Nội dung markdown với hiệu ứng reveal
     const mdContainer = document.createElement("div");
     mdContainer.className = "markdown-content";
-    markdownRenderer.renderMarkdown(reply, mdContainer);
+    const tempContainer = document.createElement("div");
+    markdownRenderer.renderMarkdown(reply, tempContainer);
+
+    // Sử dụng hiệu ứng reveal từng block
+    revealHtmlBlocksGradually(tempContainer, mdContainer, this.vscode, 100);
 
     aiBlock.appendChild(headerDiv);
     aiBlock.appendChild(mdContainer);
+
     return aiBlock;
   }
 
@@ -379,5 +387,45 @@ export class UIComponents {
     if (addFilesContainer) {
       addFilesContainer.innerHTML = "";
     }
+  }
+
+  showLoginProcess() {
+    const container = document.getElementById("container");
+    const githubLoginModal = document.getElementById("githubOAuthModal");
+    const githubLoginProcess = document.getElementById(
+      "githubOAuthWaitingModal"
+    );
+    if (!container || !githubLoginModal || !githubLoginProcess) {
+      return;
+    }
+    container.style.display = "none";
+    githubLoginModal.style.display = "none";
+    githubLoginProcess.style.display = "flex";
+  }
+  showWorkSpace() {
+    const container = document.getElementById("container");
+    const githubLoginModal = document.getElementById("githubOAuthModal");
+    const githubLoginProcess = document.getElementById(
+      "githubOAuthWaitingModal"
+    );
+    if (!container || !githubLoginModal || !githubLoginProcess) {
+      return;
+    }
+    container.style.display = "flex";
+    githubLoginModal.style.display = "none";
+    githubLoginProcess.style.display = "none";
+  }
+  showLoginModal() {
+    const container = document.getElementById("container");
+    const githubLoginModal = document.getElementById("githubOAuthModal");
+    const githubLoginProcess = document.getElementById(
+      "githubOAuthWaitingModal"
+    );
+    if (!container || !githubLoginModal || !githubLoginProcess) {
+      return;
+    }
+    container.style.display = "none";
+    githubLoginModal.style.display = "flex";
+    githubLoginProcess.style.display = "none";
   }
 }
