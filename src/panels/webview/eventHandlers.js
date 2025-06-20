@@ -100,10 +100,37 @@ export class EventHandlers {
 
     //Click button cancel login process
     const cancelLoginBtn = document.getElementById("cancelLoginProcessBtn");
-    if(cancelLoginBtn) {
+    if (cancelLoginBtn) {
       cancelLoginBtn.addEventListener("click", () => {
-        this.messageHandler.handleCancelLoginProcess()
+        this.messageHandler.handleCancelLoginProcess();
       });
+    }
+
+    //Click scroll to button
+    const scrollToBottomBtn = document.getElementById("scrollToBottomBtn");
+    const haveANewMessageBtn = document.getElementById("haveANewMessageBtn");
+    const chatBox = document.getElementById("chatBox");
+
+    if (scrollToBottomBtn && chatBox && haveANewMessageBtn) {
+      scrollToBottomBtn.addEventListener("click", () => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+
+      haveANewMessageBtn.addEventListener("click", () => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+      chatBox.addEventListener("scroll", () => {
+        // Kiểm tra nếu đã ở cuối
+        const isAtBottom =
+          chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 2;
+        scrollToBottomBtn.disabled = isAtBottom;
+        if (isAtBottom) haveANewMessageBtn.style.display = "none";
+      });
+
+      // Gọi 1 lần khi khởi tạo để cập nhật trạng thái nút
+      const isAtBottom =
+        chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 2;
+      scrollToBottomBtn.disabled = isAtBottom;
     }
   }
 

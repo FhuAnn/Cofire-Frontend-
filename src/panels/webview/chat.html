@@ -56,6 +56,7 @@
           </div>
         </button>
         <button id="newChatBtn">NewChat</button>
+        <button id="scrollToBottomBtn">Scroll down</button>
       </section>
       <section id="chatWrapper">
         <section id="chatBox">
@@ -71,6 +72,17 @@
             Cofire - AI assistant
           </div>
         </section>
+        <button id="haveANewMessageBtn" style="display: none">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 5v14M12 19l7-7M12 19l-7-7"
+              stroke="#16a34a"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
       </section>
       <section id="inputWrapper" tabindex="0">
         <section id="fileInfo">
@@ -135,8 +147,8 @@
           width="48"
           style="margin-bottom: 16px"
         />
-        <h2 style="margin-bottom: 16px">Đăng nhập với GitHub</h2>
-        <button id="githubLoginBtn">Đăng nhập với GitHub</button>
+        <h2 style="margin-bottom: 16px">Login with GitHub</h2>
+        <button id="githubLoginBtn">Login with GitHub</button>
       </div>
     </div>
     <div id="githubOAuthWaitingModal" style="display: none">
@@ -159,7 +171,8 @@
         <h2 style="margin-bottom: 16px">Waiting for login confirmation...</h2>
         <div style="margin-bottom: 12px">
           Please complete the login process in your browser.<br />
-          The page will automatically update once you have successfully logged in.
+          The page will automatically update once you have successfully logged
+          in.
         </div>
         <div class="loader" style="margin: 16px auto">
           <svg width="40" height="40" viewBox="0 0 40 40">

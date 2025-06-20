@@ -266,7 +266,6 @@ export async function callAPIWriteMessagePairToConversation(
   userId?: string,
   conversationId?: string,
   summary?: string,
-  model?: string
 ): Promise<{
   message?: string;
   newOrUpdateConversation?: Conversation;
@@ -281,7 +280,7 @@ export async function callAPIWriteMessagePairToConversation(
         role: message.role,
         content: message.content,
         summary,
-        model,
+        model: message.model || "",
       }
     );
     if (response.data.success) {
@@ -436,20 +435,39 @@ export async function callAPIDeleteConversation(
   }
 }
 
-export async function callAPICheckAndGetLoginStatus() {
+export async function callAPICheckAndGetLoginStatus(
+  accessToken: string | undefined
+): Promise<{
+  success: boolean;
+  userId: string | null;
+}> {
   try {
     console.log("fetching login status...");
+
     const res = await axios.get("http://localhost:5000/api/v1/login/user", {
-      withCredentials: true,
+      headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (res.data.success) {
       return { success: true, userId: res.data.userInfo.id };
     } else {
       // Nếu không đăng nhập, trả về false
-      return { succees: false, userId: null };
+      return { success: false, userId: null };
     }
   } catch (error) {
-    console.error("Error checking login status:", error);
-    return { success: false, userID: null };
+    if (axios.isAxiosError(error) && error.response) {
+      console.error(
+        "Error in callAPIWriteMessagePairToConversation:",
+        error.response.data
+      );
+      throw new Error(
+        error.response.data?.message ||
+          "Failed to write message pair to conversation"
+      );
+    } else {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        return { success: false, userId: null };
+      }
+      throw error;
+    }
   }
 }

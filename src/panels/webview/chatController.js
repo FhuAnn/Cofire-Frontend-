@@ -46,7 +46,7 @@ export class ChatController {
     const aiBlock = this.uiComponents.createLoadingMessage(loadingId);
     chatBox.appendChild(aiBlock);
 
-    scrollToBottom(chatBox);
+    //scrollToBottom(chatBox);
 
     // Prepare files to send
     const filesToSend = this.prepareFilesToSend();
@@ -69,7 +69,7 @@ export class ChatController {
       prompt: question,
       files: filesToSend,
       loadingId,
-      model
+      model,
     });
 
     // Reset input and attached files

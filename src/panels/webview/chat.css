@@ -53,6 +53,7 @@ body {
 
 /* ========== 3. CHAT AREA ========== */
 #chatWrapper {
+  position: relative;
   flex: 1;
   overflow-y: auto;
   padding: 1px;
@@ -74,7 +75,7 @@ body {
 }
 
 .messageBlock {
-  border-bottom: 1px solid #131212;
+  border-bottom: 1px solid #5f5f5f;
   padding: 8px;
   margin-bottom: 6px;
   outline: none;
@@ -255,12 +256,11 @@ button :hover {
   font-size: 15px;
   white-space: pre-wrap;
   margin-left: 25px;
-  background-color: #dff2ff;
+  background-color: #dff0fc;
+  padding: 6px 10px;
+  border-radius: 6px 6px 6px 3px;
 }
 
-.ai {
-  margin-right: 25px;
-}
 .robot {
   font-weight: 500;
   color: #333;
@@ -596,7 +596,8 @@ button :hover {
   gap: 8px;
 }
 
-#githubOAuthModal,#githubOAuthWaitingModal {
+#githubOAuthModal,
+#githubOAuthWaitingModal {
   display: flex;
   position: fixed;
   z-index: 9999;
@@ -617,4 +618,28 @@ button :hover {
   border-radius: 6px;
   font-size: 16px;
   cursor: pointer;
+}
+
+#haveANewMessageBtn {
+  display: none;
+  position: absolute;
+  right: 32px;
+  bottom: 36px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(155, 155, 155, 0.15);
+  border: 2px solid #414141;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+#haveANewMessageBtn:hover {
+  background: #ececec;
+}
+
+#haveANewMessageBtn svg:hover {
 }

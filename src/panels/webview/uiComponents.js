@@ -190,7 +190,6 @@ export class UIComponents {
     const emptyText = document.getElementById("emptyText");
 
     if (!chatBox || !emptyText) {
-      console.warn("Không tìm thấy phần tử chatBox hoặc emptyText.");
       return;
     }
 
@@ -373,7 +372,7 @@ export class UIComponents {
     const addFilesContainer = document.getElementById("addFiles");
     if (chatBox) {
       Array.from(chatBox.children).forEach((child) => {
-        if (child.id !== "emptyText") {
+        if (child.id !== "emptyText" && child.id !== "haveANewMessageBtn") {
           chatBox.removeChild(child);
         }
       });

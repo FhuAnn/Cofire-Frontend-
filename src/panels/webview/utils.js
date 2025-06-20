@@ -91,7 +91,10 @@ export function createIconElement(filename, className = "file-icon") {
 }
 
 export function scrollToBottom(element) {
-  element.scrollTop = element.scrollHeight;
+  if (!element) return;
+  setTimeout(() => {
+    element.scrollTop = element.scrollHeight;
+  }, 1000);
 }
 
 export function dedent(str) {

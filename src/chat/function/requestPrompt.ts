@@ -33,7 +33,7 @@ export async function requestPrompt(
     // nhưng do logic clearOldMessages, chỉ còn 2 tin)
     const recent = conversationController
       .getMessages()
-      .slice(-2)
+      .slice(-4)
       .map((msg) => (msg.role === "user" ? "User: " : "AI: ") + msg.content)
       .join("\n");
     historySection += recent;
@@ -80,6 +80,7 @@ Special formatting rule for code mentions:
       content: content,
       attachedFiles: attachedFiles,
     };
+    console.log("Model AI:", modelAI)
     const newAiChat: MessageInConversation = {
       role: "ai",
       content: aiAnswer,

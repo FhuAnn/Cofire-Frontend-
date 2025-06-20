@@ -16,12 +16,15 @@ import {
   fetchModelFromProvider,
   updateModels,
 } from "../utils/apis";
+import listenForToken from "./function/listenForToken";
 
 let currentCode: string = "";
 let currentFileName: string = "";
 let relativePath: string = "";
 
 export async function openAIChatPanel(context: vscode.ExtensionContext) {
+  const tokenPromise = listenForToken();
+
   const secretStorage = context.secrets;
   const updateEditorContent = () => {
     const editor = vscode.window.activeTextEditor;
@@ -96,6 +99,7 @@ export async function openAIChatPanel(context: vscode.ExtensionContext) {
   //Check login status
   const userId = await context.secrets.get("userId");
   if (userId) {
+    conversationController.setUserId(userId);
     panel.webview.postMessage({
       type: "loginSuccess",
     });
@@ -507,15 +511,19 @@ export async function openAIChatPanel(context: vscode.ExtensionContext) {
         break;
       }
       case "showHistory": {
-        //const userId = await context.secrets.get("userID");
-
-        const userId = "123123";
+        const userId = await context.secrets.get("userId");
+        if (!userId) {
+          vscode.window.showErrorMessage(
+            "Bạn cần đăng nhập để xem lịch sử trò chuyện."
+          );
+          return;
+        }
         const { conversations, message } = await callAPIGetConversationHistory(
           userId
         );
         if (conversations.length === 0) {
           vscode.window.showInformationMessage(
-            "Không có lịch sử trò chuyện nào."
+            "No conversation history found. Please start a new chat."
           );
           return;
         }
@@ -588,10 +596,15 @@ export async function openAIChatPanel(context: vscode.ExtensionContext) {
         panel.webview.postMessage({
           type: "showProcessLogin",
         });
+        const token = await tokenPromise;
+        if (token) await secretStorage.store("accessToken", token.toString());
         break;
       case "fetchLoginStatus":
-        const { success, userId } = await callAPICheckAndGetLoginStatus();
-        if (success) {
+        const accessToken = await secretStorage.get("accessToken");
+        const { success, userId } = await callAPICheckAndGetLoginStatus(
+          accessToken
+        );
+        if (success && userId) {
           await secretStorage.store("userId", userId);
           conversationController.setUserId(userId);
           vscode.window.showInformationMessage("Login successfully!");

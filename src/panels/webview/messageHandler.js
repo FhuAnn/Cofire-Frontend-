@@ -90,9 +90,16 @@ export class MessageHandler {
     robotDiv.appendChild(mdContainer);
 
     revealHtmlBlocksGradually(tempContainer, mdContainer, this.vscode, 100);
-
-    const chatBox = document.getElementById("chatBox");
-    scrollToBottom(chatBox);
+    setTimeout(() => {
+      const scrollToBottomBtn = document.getElementById("scrollToBottomBtn");
+      const haveANewMessageBtn = document.getElementById("haveANewMessageBtn");
+      const chatBox = document.getElementById("chatBox");
+      if (!chatBox && !scrollToBottomBtn && !haveANewMessageBtn) return;
+      const isAtBottom =
+        chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 2;
+      scrollToBottomBtn.disabled = isAtBottom;
+      haveANewMessageBtn.style.display = isAtBottom ? "none" : "block";
+    }, 1000);
   }
 
   handleFileAttached(data) {
@@ -257,10 +264,8 @@ export class MessageHandler {
     const { messagesInConversation: messages, conversationId } = data;
     // Xóa nội dung chat cũ (nếu muốn)
     const chatBox = document.getElementById("chatBox");
-    chatBox.innerHTML = "";
-
+    this.uiComponents.resetChatBox();
     sessionStorage.setItem("conversationId", conversationId);
-
     // Render từng message
     messages.forEach((msg) => {
       if (msg.role === "user") {
@@ -280,7 +285,10 @@ export class MessageHandler {
       }
     });
     // Cuộn xuống cuối
-    scrollToBottom(chatBox);
+    this.uiComponents.updateEmptyText();
+    setTimeout(() => {
+      scrollToBottom(chatBox);
+    }, 0);
   }
 
   handleDelete() {
