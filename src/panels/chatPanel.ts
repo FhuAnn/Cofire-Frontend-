@@ -4,7 +4,7 @@ import * as path from "path";
 
 export function getChatHtml(
   panel: vscode.WebviewPanel,
-  context: vscode.ExtensionContext
+  context: vscode.ExtensionContext,
 ): string {
   const webviewFolder = vscode.Uri.joinPath(
     context.extensionUri,
@@ -37,6 +37,7 @@ export function getChatHtml(
   const toggleFileIconUri = panel.webview.asWebviewUri(
     vscode.Uri.joinPath(webviewFolder, "assets", "eye-empty.svg")
   );
+  //const loginScript = `<script>window.isLoggedIn = ${isLoggedIn};</script>`;
 
   return htmlContent
     .replace("{{styleUri}}", styleUri.toString())

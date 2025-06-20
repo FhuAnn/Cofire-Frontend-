@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Login Successful</title>
+    <style>
+      body {
+        background: #181c24;
+        color: #fff;
+        font-family: "Inter", Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+      }
+      .success-icon {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 24px;
+      }
+      h2 {
+        margin-bottom: 12px;
+      }
+      .desc {
+        color: #aaa;
+        font-size: 15px;
+        margin-bottom: 32px;
+      }
+      .close-btn {
+        background: #2ea043;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 24px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .close-btn:hover {
+        background: #238636;
+      }
+    </style>
+  </head>
+  <body>
+    <svg class="success-icon" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="12" fill="#2ea043" />
+      <path
+        d="M7 13l3 3 7-7"
+        stroke="#fff"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+    <h2>Login Successful!</h2>
+    <div class="desc">You can close this tab and return to VS Code.</div>
+    <button class="close-btn" onclick="window.close()">Close Tab</button>
+  </body>
+</html>

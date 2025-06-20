@@ -33,8 +33,8 @@ export class ChatController {
     const isNewModel = model !== prevModel;
 
     if (isNewModel) {
-      chatBox.innerHTML = ""; 
-      this.lastUsedModel = model; 
+      chatBox.innerHTML = "";
+      this.lastUsedModel = model;
     }
 
     // Create user message
@@ -46,7 +46,7 @@ export class ChatController {
     const aiBlock = this.uiComponents.createLoadingMessage(loadingId);
     chatBox.appendChild(aiBlock);
 
-    scrollToBottom(chatBox);
+    //scrollToBottom(chatBox);
 
     // Prepare files to send
     const filesToSend = this.prepareFilesToSend();
@@ -69,6 +69,7 @@ export class ChatController {
       prompt: question,
       files: filesToSend,
       loadingId,
+      model,
     });
 
     // Reset input and attached files

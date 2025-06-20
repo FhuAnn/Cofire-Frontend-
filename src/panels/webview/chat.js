@@ -417,7 +417,6 @@ window.addEventListener("message", (event) => {
       questionInput.focus();
       break;
     }
-
     // Khi đính kèm đoạn selection trong file
     case "selectionAttached": {
       console.log("Selection attached:", state.attachedFiles);

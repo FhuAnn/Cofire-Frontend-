@@ -64,6 +64,74 @@ export class EventHandlers {
         this.chatController.toggleVisibility();
       });
     }
+
+    //Show list conversation
+    const historyBtn = document.getElementById("historyBtn");
+    if (historyBtn) {
+      historyBtn.addEventListener("click", () => {
+        console.log("History button clicked");
+        this.vscode.postMessage({
+          type: MESSAGE_TYPES.SHOW_HISTORY,
+        });
+      });
+    }
+
+    //Create empty chat / new chat
+    const newChatBtn = document.getElementById("newChatBtn");
+    if (newChatBtn) {
+      newChatBtn.addEventListener("click", () => {
+        console.log("New chat button clicked");
+        this.uiComponents.resetChatBox();
+        this.vscode.postMessage({
+          type: MESSAGE_TYPES.NEW_CHAT,
+        });
+      });
+    }
+
+    //Click button Github OAuth
+    const githubLoginBtn = document.getElementById("githubLoginBtn");
+    if (githubLoginBtn) {
+      githubLoginBtn.addEventListener("click", () => {
+        this.vscode.postMessage({
+          type: MESSAGE_TYPES.GITHUB_LOGIN,
+        });
+      });
+    }
+
+    //Click button cancel login process
+    const cancelLoginBtn = document.getElementById("cancelLoginProcessBtn");
+    if (cancelLoginBtn) {
+      cancelLoginBtn.addEventListener("click", () => {
+        this.messageHandler.handleCancelLoginProcess();
+      });
+    }
+
+    //Click scroll to button
+    const scrollToBottomBtn = document.getElementById("scrollToBottomBtn");
+    const haveANewMessageBtn = document.getElementById("haveANewMessageBtn");
+    const chatBox = document.getElementById("chatBox");
+
+    if (scrollToBottomBtn && chatBox && haveANewMessageBtn) {
+      scrollToBottomBtn.addEventListener("click", () => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+
+      haveANewMessageBtn.addEventListener("click", () => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+      chatBox.addEventListener("scroll", () => {
+        // Kiểm tra nếu đã ở cuối
+        const isAtBottom =
+          chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 2;
+        scrollToBottomBtn.disabled = isAtBottom;
+        if (isAtBottom) haveANewMessageBtn.style.display = "none";
+      });
+
+      // Gọi 1 lần khi khởi tạo để cập nhật trạng thái nút
+      const isAtBottom =
+        chatBox.scrollTop + chatBox.clientHeight >= chatBox.scrollHeight - 2;
+      scrollToBottomBtn.disabled = isAtBottom;
+    }
   }
 
   setupDragDropEvents() {
@@ -144,7 +212,7 @@ export class EventHandlers {
           this.vscode.postMessage({
             type: "modelSelected",
             model: stateManager.getSelectedModel(),
-            isUserModel
+            isUserModel,
           });
         }
       });
