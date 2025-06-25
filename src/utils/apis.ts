@@ -4,6 +4,7 @@ import {
   ChatAPIErrorResponse,
   ChatAPISuccessResponse,
   Conversation,
+  FileToSend,
   MessageInConversation,
 } from "../types";
 
@@ -265,7 +266,7 @@ export async function callAPIWriteMessagePairToConversation(
   message: MessageInConversation,
   userId?: string,
   conversationId?: string,
-  summary?: string,
+  summary?: string
 ): Promise<{
   message?: string;
   newOrUpdateConversation?: Conversation;
@@ -281,6 +282,7 @@ export async function callAPIWriteMessagePairToConversation(
         content: message.content,
         summary,
         model: message.model || "",
+        attaches: message.attachedFiles,
       }
     );
     if (response.data.success) {

@@ -479,7 +479,7 @@ window.addEventListener("message", (event) => {
       break;
     }
     case "folderAttached": {
-      console.log("Folder attached:", data);
+      // console.log("Folder attached:", data);
       // Kiểm tra trùng folder
       if (
         state.attachedFiles.some(

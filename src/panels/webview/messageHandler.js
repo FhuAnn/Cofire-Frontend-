@@ -270,10 +270,20 @@ export class MessageHandler {
     messages.forEach((msg) => {
       if (msg.role === "user") {
         const userBlock = this.uiComponents.createUserMessage(
-          msg.id,
+          msg._id,
           msg.content
         );
         chatBox.appendChild(userBlock);
+        msg.attaches.forEach((file) => {
+          const fileElement = this.uiComponents.createFileAttachElement(
+            file,
+            msg._id
+          );
+          const parent = document.getElementById(msg._id);
+          if (parent) {
+            parent.appendChild(fileElement);
+          }
+        });
       } else {
         const aiBlock = this.uiComponents.createAIMessage(
           msg.id,

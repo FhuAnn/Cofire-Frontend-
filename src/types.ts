@@ -1,8 +1,11 @@
 export interface FileToSend {
   fileName: string;
   relativePath: string;
-  code: string;
-}
+  selectionCode?: string;
+  code?: string;
+  selectionStart?: number;
+  selectionEnd?: number;
+} 
 
 export interface ChatAPIErrorResponse {
   success: boolean;

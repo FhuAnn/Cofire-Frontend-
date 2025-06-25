@@ -26,7 +26,6 @@ class StateManager {
   // Current file methods
   updateCurrentFile(data) {
     this.state.currentFile = {
-      ...this.state.currentFile,
       ...data,
     };
   }
@@ -41,31 +40,19 @@ class StateManager {
     console.log("=== addAttachedFile called ===");
     console.log("New file:", file);
     console.log("Current attachedFiles:", this.state.attachedFiles);
-    // Kiểm tra trùng với currentFile
-    const isCurrentFile =
-      this.state.currentFile.relativePath === file.relativePath;
 
-    if (isCurrentFile) {
-      console.log("File is already the current file");
-      return false;
-    }
     const exists = this.state.attachedFiles.some((f) => {
-      // Nếu cả 2 đều có type, so sánh theo type
-      if (f.type && file.type) {
-        if (f.type !== file.type) return false;
-
-        if (f.type === "selection") {
-          return (
-            f.relativePath === file.relativePath &&
-            f.selectionStart === file.selectionStart &&
-            f.selectionEnd === file.selectionEnd
-          );
-        }
-        return f.relativePath === file.relativePath;
-      }
-
-      // Nếu không có type hoặc chỉ 1 bên có type, so sánh relativePath
-      return f.relativePath === file.relativePath;
+      // so sánh relativePath
+      if (f.relativePath !== file.relativePath) return false;
+      if (f.selectedCode || file.selectedCode) {
+        return (
+          f.selectionStart === file.selectionStart &&
+          f.selectionEnd === file.selectionEnd &&
+          f.selectionStartCharacter === file.selectionStartCharacter &&
+          f.selectionEndCharacter === file.selectionEndCharacter
+        );
+      } 
+      return true;
     });
 
     if (!exists) {

@@ -17,7 +17,13 @@ export async function requestPrompt(
             "Invalid file object: missing relativePath or fileName"
           );
         }
-        return `File: ${f.relativePath || f.fileName}\n\`\`\`${f.code}\`\`\`\n`;
+        if (f.code)
+          return `File: ${f.relativePath || f.fileName}\n\`\`\`${
+            f.code
+          }\`\`\`\n`;
+        return `File: ${f.relativePath || f.fileName} line ${f.selectionStart}-${
+          f.selectionEnd
+        }\n\`\`\`${f.selectedCode || ""}\`\`\`\n`;
       })
       .join("\n");
   }
@@ -80,7 +86,7 @@ Special formatting rule for code mentions:
       content: content,
       attachedFiles: attachedFiles,
     };
-    console.log("Model AI:", modelAI)
+    console.log("Model AI:", modelAI);
     const newAiChat: MessageInConversation = {
       role: "ai",
       content: aiAnswer,

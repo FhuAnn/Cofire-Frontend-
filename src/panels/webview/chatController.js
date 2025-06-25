@@ -88,16 +88,24 @@ export class ChatController {
       !filesToSend.some(
         (f) =>
           f.relativePath === currentFile.relativePath &&
-          !f.type &&
-          (f.type !== "selection" ||
-            f.selectedCode === currentFile.selectedCode)
+          (f.selectedCode === currentFile.selectedCode ||
+            f.code === currentFile.code)
       )
     ) {
-      filesToSend.push({
-        fileName: currentFile.fileName,
-        code: currentFile.code,
-        relativePath: currentFile.relativePath,
-      });
+      if (currentFile.code)
+        filesToSend.push({
+          fileName: currentFile.fileName,
+          code: currentFile.code,
+          relativePath: currentFile.relativePath,
+        });
+      else
+        filesToSend.push({
+          fileName: currentFile.fileName,
+          relativePath: currentFile.relativePath,
+          selectedCode: currentFile.selectedCode,
+          selectionStart: currentFile.selectionStart,
+          selectionEnd: currentFile.selectionEnd,
+        });
     }
 
     // Add attached files

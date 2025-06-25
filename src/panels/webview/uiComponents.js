@@ -83,10 +83,10 @@ export class UIComponents {
     div.id = initialID;
 
     let content = "";
-    if (file.selectedCode) {
-      content = `${file.fileName} line ${file.selectionStart} - ${file.selectionEnd}`;
-    } else {
+    if (file.code || !file.selectionStart) {
       content = file.fileName || file.folderName;
+    } else {
+      content = `${file.fileName} line ${file.selectionStart} - ${file.selectionEnd}`;
     }
 
     // Add icon
@@ -172,7 +172,7 @@ export class UIComponents {
     if (!currentFile.selectedCode) {
       textSpan.textContent = currentFile.fileName;
     } else {
-      textSpan.textContent = `${currentFile.fileName}: line ${currentFile.selectionStart} - ${currentFile.selectionEnd} `;
+      textSpan.textContent = `${currentFile.fileName}: line ${currentFile.selectionStart} - ${currentFile.selectionEnd}`;
     }
     textSpan.textContent += " current";
     currentFileDisplay.appendChild(textSpan);

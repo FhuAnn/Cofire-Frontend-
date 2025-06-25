@@ -29,23 +29,8 @@ export async function openAIChatPanel(context: vscode.ExtensionContext) {
   const updateEditorContent = () => {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
-      currentCode = editor.document.getText();
-      currentFileName =
-        editor.document.fileName.split(/[/\\]/).pop() ?? "No content";
       //Lấy selection nếu có
       const selection = editor.selection;
-      let selectedCode = "";
-      let selectionStart = 0;
-      let selectionEnd = 0;
-      let selectionStartCharacter = 0;
-      let selectionEndCharacter = 0;
-      if (!selection.isEmpty) {
-        selectedCode = editor.document.getText(selection);
-        selectionStart = selection.start.line + 1; // dòng bắt đầu (1-based)
-        selectionEnd = selection.end.line + 1; // dòng kết thúc (1-based)
-        selectionStartCharacter = selection.start.character;
-        selectionEndCharacter = selection.end.character;
-      }
       const fullPath = editor.document.fileName;
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(
         editor.document.uri
@@ -53,19 +38,41 @@ export async function openAIChatPanel(context: vscode.ExtensionContext) {
       const relativePath = workspaceFolder
         ? vscode.workspace.asRelativePath(fullPath)
         : fullPath;
+
+      let selectedCode = "";
+      let selectionStart = 0;
+      let selectionEnd = 0;
+      let selectionStartCharacter = 0;
+      let selectionEndCharacter = 0;
+      currentFileName =
+        editor.document.fileName.split(/[/\\]/).pop() ?? "No content";
+
+      if (!selection.isEmpty) {
+        selectedCode = editor.document.getText(selection);
+        selectionStart = selection.start.line + 1; // dòng bắt đầu (1-based)
+        selectionEnd = selection.end.line + 1; // dòng kết thúc (1-based)
+        selectionStartCharacter = selection.start.character;
+        selectionEndCharacter = selection.end.character;
+        currentCode = "";
+      } else {
+        currentCode = editor.document.getText();
+      }
+      //gửi toàn bộ tới panel
       if (currentPanel) {
         sendCurentFileToPanel(
           currentPanel,
-          currentCode,
           currentFileName,
+          relativePath,
+          currentCode,
           selectedCode,
           selectionStart,
           selectionEnd,
           selectionStartCharacter,
-          selectionEndCharacter,
-          relativePath
+          selectionEndCharacter
         );
       }
+      currentCode = "";
+      currentFileName = "";
     }
   };
   updateEditorContent();
@@ -377,11 +384,14 @@ export async function openAIChatPanel(context: vscode.ExtensionContext) {
         await handleGotoSelection(message);
         break;
       case "sendPromptToModel": {
-        //console.log("sendPromptToModel", message);
+        console.log("sendPromptToModel", message);
         let filesToSend: FileToSend[] = [];
-
+        //Gộp các loại selection và file cần gửi.
         for (const f of message.files) {
-          if (f.type === "folder") {
+          //trường hợp người dùng gửi folder
+          if (f.folderUri) {
+            //console.log("f.code");
+            //trường hợp người dùng gửi folder
             const folderUri = vscode.Uri.parse(f.folderUri);
             const files = await vscode.workspace.findFiles(
               new vscode.RelativePattern(folderUri, "**/*"),
@@ -405,10 +415,11 @@ export async function openAIChatPanel(context: vscode.ExtensionContext) {
               });
             }
           } else {
+            //push file or selection
             filesToSend.push(f);
           }
         }
-        console.log("Đoạn chat hiện tại chuẩn bị", filesToSend);
+        //console.log("Đoạn chat hiện tại chuẩn bị", filesToSend);
         // Lấy nội dung của file hiện tại
         const newChatToSend: MessageInConversation = {
           role: "user",
@@ -626,7 +637,7 @@ export async function openAIChatPanel(context: vscode.ExtensionContext) {
     setCurrentPanel(undefined);
   });
   //gửi dữ liệu ban đầu
-  sendCurentFileToPanel(panel, currentCode, currentFileName, relativePath);
+  sendCurentFileToPanel(panel, currentFileName, relativePath, currentCode);
   //theo dõi thay đổi focus editor
   vscode.window.onDidChangeActiveTextEditor(() => {
     updateEditorContent();
@@ -638,26 +649,35 @@ export async function openAIChatPanel(context: vscode.ExtensionContext) {
 
 function sendCurentFileToPanel(
   panel: vscode.WebviewPanel,
-  code: string,
   fileName: string,
+  relativePath: string,
+  code: string,
   selectedCode?: string,
   selectionStart?: number,
   selectionEnd?: number,
   selectionStartCharacter?: number,
-  selectionEndCharacter?: number,
-  relativePath?: string
+  selectionEndCharacter?: number
 ) {
-  //console.log("changeee", fileName, relativePath, selectionStart);
-
-  panel.webview.postMessage({
-    type: "update",
-    code,
-    fileName,
-    selectedCode,
-    selectionStart,
-    selectionEnd,
-    selectionStartCharacter,
-    selectionEndCharacter,
-    relativePath,
-  });
+  // console.log("changeee", fileName, relativePath, selectionStart);
+  if (code) {
+    //nếu người dùng chọn cả file
+    panel.webview.postMessage({
+      type: "update",
+      fileName,
+      code,
+      relativePath,
+    });
+  } else {
+    // nếu người dùng chọn bằng selection
+    panel.webview.postMessage({
+      type: "update",
+      fileName,
+      selectedCode,
+      selectionStart,
+      selectionEnd,
+      selectionStartCharacter,
+      selectionEndCharacter,
+      relativePath,
+    });
+  }
 }
