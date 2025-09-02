@@ -60,7 +60,7 @@ Dự án nhằm giải quyết các vấn đề như tốn thời gian viết co
 
 ## 📸 Demo (Screenshots)
 ### Giao diện Chat AI
-![Giao diện Chat AI](https://github.com/FhuAnn/Cofire-Frontend-/blob/main/images/chat-ai.jpg?raw=true)
+![Giao diện Chat AI](https://github.com/FhuAnn/Cofire-Frontend-/blob/main/images/ui-chat.jpg?raw=true)
 
 ### Sơ đồ Use-Case tổng quát
 ![Use-Case Diagram](https://github.com/FhuAnn/Cofire-Frontend-/blob/main/images/use-case.jpg?raw=true)
