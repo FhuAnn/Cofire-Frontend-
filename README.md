@@ -48,13 +48,14 @@ Dự án nhằm giải quyết các vấn đề như tốn thời gian viết co
 ---
 
 ## 🔧 Hướng dẫn chạy dự án
-0. Clone hoặc tải về project này từ [https://github.com/FhuAnn/Cofire-Frontend-/](https://github.com/FhuAnn/Cofire-Frontend-/).  
-1. Cài đặt các dependencies:  
+0. Clone hoặc tải về project này từ [https://github.com/FhuAnn/Cofire-Frontend-/](https://github.com/FhuAnn/Cofire-Frontend-/).
+1. Clone hoặc tải về project này từ [https://github.com/FhuAnn/Cofire-Backend-/](https://github.com/FhuAnn/Cofire-Backend-/).  
+2. Cài đặt các dependencies:  
    ```
    npm install
    ```  
-2. Tải extension hỗ trợ: esbuild Problem Matchers và Extension Test Runner (Ctrl + Shift + X).  
-3. Nhấn F5 để chạy extension ở Deployment Mode (môi trường giả lập đã cài extension).  
+3. Tải extension hỗ trợ: esbuild Problem Matchers và Extension Test Runner (Ctrl + Shift + X).  
+4. Nhấn F5 để chạy extension ở Deployment Mode (môi trường giả lập đã cài extension).  
 
 ---
 
